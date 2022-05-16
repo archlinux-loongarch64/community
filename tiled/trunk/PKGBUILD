@@ -1,0 +1,27 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Collaborator: Jonathan Fine (were.Vire AT gmail DOT com)
+pkgname=tiled
+pkgver=1.8.4
+pkgrel=1
+pkgdesc='A general purpose tile map editor, built to be flexible and easy to use'
+arch=('x86_64')
+url='http://www.mapeditor.org'
+license=('GPL')
+replaces=('tiled-qt')
+depends=('qt5-base' 'libgl' 'gtk-update-icon-cache' 'shared-mime-info' 'desktop-file-utils' 'libxkbcommon-x11'
+         'qt5-declarative' 'qt5-quickcontrols2' 'qt5-svg' 'zstd')
+makedepends=('mesa' 'qt5-tools' 'python' 'qbs')
+optdepends=('python: Python plugin'
+            'qt5-imageformats: Support for additional image formats (including WebP)')
+source=($pkgname-$pkgver.tar.gz::https://github.com/bjorn/tiled/archive/v${pkgver}.tar.gz)
+sha512sums=('04ff52e2d555a38d7f24e1e13344db81c93d054381a8104b259afa0eafa4d72a9c27e4b6a5260fd6fa552d23d0f8802c446fcbe678cec615b80bc346ecda255b')
+
+build() {
+  cd $pkgname-$pkgver
+  qbs qbs.installPrefix:"/usr" projects.Tiled.useRPaths:false projects.Tiled.installHeaders:true projects.Tiled.enableZstd:true
+}
+
+package() {
+  cd $pkgname-$pkgver
+  qbs install --install-root "$pkgdir"
+}

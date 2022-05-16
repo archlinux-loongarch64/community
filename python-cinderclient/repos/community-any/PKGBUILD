@@ -1,0 +1,36 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Daniel Wallace <danielwallace at gtmanfred dot com>
+
+pkgname=python-cinderclient
+pkgver=8.3.0
+pkgrel=1
+pkgdesc="OpenStack Block Storage API Client Library"
+arch=('any')
+url="https://docs.openstack.org/developer/python-cinderclient"
+license=('Apache')
+depends=('python-six' 'python-pbr' 'python-babel' 'python-prettytable' 'python-keystoneclient'
+         'python-requests' 'python-oslo-utils')
+checkdepends=('python-oslotest' 'python-requests-mock' 'python-ddt')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/openstack/python-cinderclient/archive/$pkgver.tar.gz")
+sha512sums=('0bba84b782058a4cfeba03a9ee616843c1293896a150ff481f407ce3d460258bd1005a2da699ef898c82610924a722e30797e161d9f81ad721a261009ed539eb')
+
+export PBR_VERSION=$pkgver
+
+prepare() {
+  sed -i '/simplejson/d' python-cinderclient-$pkgver/requirements.txt
+}
+
+build() {
+  cd python-cinderclient-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd python-cinderclient-$pkgver
+  stestr run
+}
+
+package() {
+  cd python-cinderclient-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1
+}

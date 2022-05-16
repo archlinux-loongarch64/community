@@ -1,0 +1,30 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-whitenoise
+pkgver=6.0.0
+pkgrel=1
+pkgdesc='Radically simplified static file serving for WSGI applications'
+arch=('any')
+license=('MIT')
+url='http://whitenoise.evans.io'
+depends=('python')
+makedepends=('python-setuptools')
+checkdepends=('python-brotli' 'python-django' 'python-pytest' 'python-requests')
+source=("https://github.com/evansd/whitenoise/archive/$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('ae01070f510df78fdb0ae12ebca594d8a35a89dba5d7903516eb1c3078a1fd6493fc248db34250084584f46c9445738ea5f00106e4a64b7f1b344427b8b8f41b')
+
+build() {
+  cd whitenoise-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd whitenoise-$pkgver
+  DJANGO_SETTINGS_MODULE=tests.django_settings PYTHONPATH="$PWD"/build/lib pytest
+}
+
+package() {
+  cd whitenoise-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1
+  install -D -m644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}

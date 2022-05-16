@@ -1,0 +1,33 @@
+# Maintainer: BlackEagle <ike.devolder@gmail.com>>
+
+pkgname=kodi-addon-game-libretro-nestopia
+pkgver=1.51.1.24
+_codename=Matrix
+pkgrel=4
+pkgdesc="Libretro wrapper for Kodi's Game API"
+arch=('x86_64')
+url='https://github.com/kodi-game/game.libretro.nestopia'
+license=('GPL')
+groups=('kodi-addons' 'kodi-addons-game')
+makedepends=('cmake' 'kodi-dev' 'kodi-addon-game-libretro' 'libretro-nestopia')
+options=(!lto debug)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/kodi-game/game.libretro.nestopia/archive/$pkgver-$_codename.tar.gz")
+sha512sums=('ebd2daf1d62f5b03ffd2b5471308b10870c94b66248776cf3921b529a28c4ec6d3e8a97affbb7b2521bd16edc886ee44af3b685339ee8ab49d0c6ebed1544823')
+
+build() {
+    cd "game.libretro.nestopia-$pkgver-$_codename"
+    cmake \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=1 \
+        -DUSE_LTO=1 \
+        .
+    make
+}
+
+package() {
+    depends=('kodi-addon-game-libretro' 'libretro-nestopia')
+    cd "game.libretro.nestopia-$pkgver-$_codename"
+	make DESTDIR="$pkgdir/" install
+}
+

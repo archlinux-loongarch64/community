@@ -1,0 +1,53 @@
+# Maintainer: Thore Bödecker <foxxx0@archlinux.org>
+# Contributor: Tim Meusel <tim@bastelfreak.de>
+
+_gemname='nats-pure'
+pkgname="ruby-${_gemname}"
+pkgver=2.0.0
+pkgrel=1
+pkgdesc="Ruby client for the NATS messaging system"
+url="https://github.com/nats-io/nats-pure.rb"
+arch=('any')
+license=('MIT')
+depends=('ruby')
+makedepends=('ruby-rake' 'ruby-rspec' 'ruby-bundler' 'ruby-rdoc' 'ruby-test-unit')
+options=('!emptydirs')
+source=("${_gemname}-v${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
+sha512sums=('1917f035fb9a174c3f4afaca60c0a25b826caa70f8a84662bf2ef2b7ae08b1e61c23a17479939a05d57484dc1101dfce16d665ce507335473f97260f72426173')
+
+
+prepare() {
+  cd "${srcdir}/${_gemname}.rb-${pkgver}"
+  :
+}
+
+build() {
+  cd "${srcdir}/${_gemname}.rb-${pkgver}"
+  mkdir -p pkg
+  gem build -o "pkg/${_gemname}-${pkgver}.gem"
+}
+
+check() {
+  cd "${srcdir}/${_gemname}.rb-${pkgver}"
+  # testsuite requires a running nats server to test against
+  #rake spec
+}
+
+package() {
+  cd "${srcdir}/${_gemname}.rb-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+
+  gem install \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "${pkgdir}/${_gemdir}" \
+    --bindir "${pkgdir}/usr/bin" \
+    "pkg/${_gemname}-${pkgver}.gem"
+
+  rm -rf "${pkgdir}/${_gemdir}/cache"
+
+  install -D -m644 "LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+
+# vim: ts=2 sw=2 et:

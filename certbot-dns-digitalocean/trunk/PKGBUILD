@@ -1,0 +1,58 @@
+# Maintainer: George Rawlinson <grawlinson@archlinux.org>
+# Contributor: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=certbot-dns-digitalocean
+pkgver=1.26.0
+pkgrel=1
+pkgdesc="DigitalOcean DNS Authenticator plugin for Certbot"
+arch=('any')
+license=('Apache')
+url="https://pypi.python.org/pypi/$pkgname"
+depends=(
+  'certbot'
+  'python-acme'
+  'python-digitalocean'
+)
+makedepends=(
+  'python-build'
+  'python-wheel'
+  'python-installer'
+)
+checkdepends=('python-pytest')
+source=("https://files.pythonhosted.org/packages/source/${pkgname::1}/$pkgname/$pkgname-$pkgver.tar.gz"{,.asc})
+validpgpkeys=('148C30F6F7E429337A72D992B00B9CC82D7ADF2C'
+              '1B41B758F9A78C7F444C20FA3E5B4152E3ADB1FD'
+              'A2CFB51FA275A7286234E7B24D17C995CD9775F2'
+              '86379B4F0AF371B50CD9E5FF3402831161D1D280'
+              '20F201346BF8F3F455A73F9A780CC99432A28621')
+sha512sums=('1c4353ae55eaa8924049113ff8c6bc8cebf39b4c15f685add2d8dc59fb73483b75285805db06515a37a0854aa99e235d7c0e72d3f982b3e7687d3ea152c492f7'
+            'SKIP')
+b2sums=('4277000f9f0a709aaa88878a3d2f2247c637952ae2976ff874f019306cf45f1c1471b15d19598d54b17c5e856ec441fcc4cb40ece328d4697e1048567007c210'
+        'SKIP')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+
+  # nuke setuptools from orbit ^W install_requires
+  sed \
+    -e '/setuptools>=/d' \
+    -i setup.py
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+
+  python -m pytest
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}

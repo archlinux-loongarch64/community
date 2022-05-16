@@ -1,0 +1,35 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-pytest-httpx
+pkgver=0.17.2
+pkgrel=1
+pkgdesc='Send responses to httpx'
+arch=('any')
+license=('MIT')
+url='https://colin-b.github.io/pytest_httpx'
+depends=('python-httpx' 'python-pytest')
+makedepends=('python-setuptools')
+checkdepends=('python-pytest-asyncio')
+source=("https://github.com/Colin-b/pytest_httpx/archive/v$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('aaeded94d204d53bf96f802668449361c291d4b0accbe614d8c80d609482f6b10945afb255b81d4199187f3c50cb98d35d5acfd75423283907223ca924b85444')
+
+build() {
+  cd pytest_httpx-$pkgver
+  python setup.py build
+}
+
+check() {
+  # Hack entry points by installing it
+
+  cd pytest_httpx-$pkgver
+  python setup.py install --root="$PWD/tmp_install" --optimize=1
+  PYTHONPATH="$PWD/tmp_install/usr/lib/python3.10/site-packages:$PYTHONPATH" pytest
+}
+
+package() {
+  cd pytest_httpx-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1
+  install -D -m644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}
+
+# vim:set ts=2 sw=2 et:

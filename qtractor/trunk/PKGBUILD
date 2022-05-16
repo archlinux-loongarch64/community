@@ -1,0 +1,46 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Ray Rashif <schiv@archlinux.org>
+# Contributor: speps <speps at aur dot archlinux dot org>
+# Contributor: Philipp Überbacher <hollunder at gmx dot at>
+
+pkgname=qtractor
+pkgver=0.9.26
+pkgrel=1
+pkgdesc="Audio/MIDI multitrack sequencer"
+arch=(x86_64)
+url="https://qtractor.sourceforge.io/"
+license=(GPL2)
+groups=(pro-audio)
+depends=(glibc gcc-libs hicolor-icon-theme libmad libxcb qt6-base zlib)
+makedepends=(alsa-lib aubio cmake dssi jack ladspa liblo libogg libsamplerate
+libsndfile libvorbis lilv lv2 qt6-tools rubberband suil vst3sdk)
+optdepends=(
+  'new-session-manager: for session management'
+  'qt6-wayland: for native wayland support'
+)
+provides=(dssi-host ladspa-host lv2-host vst-host vst3-host)
+# NOTE: debug package contains include files of vst3sdk
+# options=(debug)
+source=(https://sourceforge.net/projects/$pkgname/files/$pkgname/$pkgver/$pkgname-$pkgver.tar.gz)
+sha512sums=('ca1a1cfcd7083bae83d26b0710cb7b884658176c060858f5f9fbc40a885a498731a544390be2a61f4f986d113ca112271eaf5c6218f6e3051b152dcae836b8d0')
+b2sums=('3e0febf185ad5818bec00c3b66cfdcf8e2ff89909f3934facf3e371283b840847111b3eb175bcc7f5e0a073f06b01554aa5f61a0add1c21588124858849a3cfa')
+
+build() {
+  cmake -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=None \
+        -DCONFIG_QT6=ON \
+        -Wno-dev \
+        -B build \
+        -S $pkgname-$pkgver
+  make VERBOSE=1 -C build
+}
+
+package() {
+  depends+=(libasound.so libaubio.so libjack.so liblilv-0.so liblo.so libogg.so
+  librubberband.so libsamplerate.so libsndfile.so libvorbisenc.so
+  libvorbisfile.so libvorbis.so )
+
+  make DESTDIR="$pkgdir" install -C build
+  # docs
+  install -vDm 644 $pkgname-$pkgver/{README,README.VST} -t "$pkgdir/usr/share/doc/$pkgname/"
+}

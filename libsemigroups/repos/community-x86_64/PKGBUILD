@@ -1,0 +1,27 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+
+pkgname=libsemigroups
+pkgver=2.1.4
+pkgrel=1
+pkgdesc='C++ library for semigroups and monoids'
+url='https://libsemigroups.github.io/libsemigroups'
+arch=(x86_64)
+license=(GPL3)
+depends=(fmt)
+makedepends=(eigen)
+source=(https://github.com/libsemigroups/libsemigroups/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz)
+sha256sums=('721571faf8cca13678ec7350c88468f76086f9942c90820bf390ea0b76120125')
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure --prefix=/usr \
+              --enable-fmt \
+              --with-external-fmt \
+              --with-external-eigen
+  make
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+}

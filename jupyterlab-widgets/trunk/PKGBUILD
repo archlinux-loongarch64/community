@@ -1,0 +1,36 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+
+_pipname=jupyterlab_widgets
+pkgname=${_pipname/_/-}
+pkgver=1.1.0
+pkgrel=1
+pkgdesc='JupyterLab extension to use ipywidgets'
+arch=(any)
+url='https://jupyter.org/'
+license=(custom)
+depends=(jupyterlab python-ipywidgets)
+makedepends=(python-setuptools python-jupyter_packaging)
+source=(https://pypi.io/packages/source/${_pipname:0:1}/$_pipname/$_pipname-$pkgver.tar.gz
+        drop-version-constraints.patch)
+sha256sums=('d5f41bc1713795385f718d44dcba47e1e1473c6289f28a95aa6b2c0782ee372a'
+            '1e465155b135e86a66bcb0b112025f9a4be3fd0d28afa31ca5cf954e4d0dd4bc')
+
+prepare() {
+  patch -d $_pipname-$pkgver -p1 < drop-version-constraints.patch
+}
+
+build() {
+  cd $_pipname-$pkgver
+  python setup.py build 
+}
+
+package() {
+  cd $_pipname-$pkgver
+  python setup.py install --skip-build --root="$pkgdir" --optimize=1
+
+# These should be installed by setup.py, but they are not
+  mkdir -p "$pkgdir"/usr/share/jupyter/labextensions/@jupyter-widgets/
+  cp -r jupyterlab_widgets/labextension "$pkgdir"/usr/share/jupyter/labextensions/@jupyter-widgets/jupyterlab-manager
+
+  install -Dm644 LICENSE -t "$pkgdir"/usr/share/licenses/$pkgname
+}

@@ -1,0 +1,40 @@
+# Maintainer: Alexander F. Rødseth <xyproto@archlinux.org>
+# Contributor: Thomas Dziedzic <gostrc@gmail.com>
+# Contributor: Chris O'Donnell <christopher.p.odonnell@gmail.com>
+# Contributor: Sam May <sam.m4y@gmail.com>
+# Contributor: Pierre-Yves Ritschard <pyr@spootnik.org>
+# Contributor: Vladimir Tsanev <tsachev@gmail.com>
+
+pkgname=clojure
+pkgver=1.11.1.1105
+pkgrel=1
+pkgdesc='Lisp dialect for the JVM'
+url='https://clojure.org/'
+arch=(any)
+license=(EPL)
+depends=(java-environment)
+makedepends=(setconf)
+optdepends=('leiningen: automate clojure projects'
+            'rlwrap: friendly shell with readline support')
+install=clojure.install
+source=("https://download.clojure.org/install/clojure-tools-$pkgver.tar.gz")
+b2sums=('e3a6dbc987eb8c073d119651b0e9d818299a1c3c4947cea5863eeb08546195b03b09200d1151050d7884000f1566b19d45db146d6ec5d67fa74443e627b95f65')
+
+prepare() {
+  cd clojure-tools
+  setconf clj bin_dir=/usr/bin
+  setconf clojure install_dir=/usr/share/clojure
+  echo 'export CLOJURE_HOME=/usr/share/clojure' > clojure.sh
+}
+
+package() {
+  cd clojure-tools
+  local c="$pkgdir/usr/share/clojure"
+  for fn in *.edn; do install -Dm644 "$fn" "$c/$fn"; done
+  for fn in *.jar; do install -Dm644 "$fn" "$c/libexec/$fn"; done
+  install -Dm755 clj "$pkgdir/usr/bin/clj"
+  install -Dm755 clojure "$pkgdir/usr/bin/clojure"
+  install -Dm644 clojure.sh "$pkgdir/etc/profile.d/clojure.sh"
+  install -Dm644 clojure.1 "$pkgdir/usr/share/man/man1/clojure.1"
+  install -Dm644 clj.1 "$pkgdir/usr/share/man/man1/clj.1"
+}

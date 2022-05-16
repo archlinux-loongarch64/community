@@ -1,0 +1,36 @@
+# Maintainer: Daniel Wallace <danielwallace at gtmanfred dot com>
+# Contributor: Sebastien Leduc <sebastien@sleduc.fr>
+# Contributor: Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>
+
+_pkgname=prettytable
+pkgname=python-prettytable
+pkgver=2.3.0
+pkgrel=1
+pkgdesc="A simple Python library for easily displaying tabular data"
+url="https://github.com/jazzband/prettytable"
+arch=('any')
+license=('BSD')
+depends=('python-wcwidth')
+makedepends=('python-setuptools-scm')
+checkdepends=('python-pytest-lazy-fixture')
+conflicts=('python-ptable')
+source=("https://files.pythonhosted.org/packages/source/p/prettyTable/prettytable-${pkgver}.tar.gz")
+sha512sums=('feeaeeb0a1897c0aaa2bc0ac7f470244529e8c70debb26976494719607840c8b8a80698b7e463402031b250fe152091e947555be2a6f983764e01bdaa1a71a22')
+
+export SETUPTOOLS_SCM_PRETEND_VERSION=$pkgver
+
+build() {
+  cd prettytable-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd prettytable-$pkgver
+  python setup.py egg_info
+  PYTHONPATH="$PWD/src" pytest
+}
+
+package() {
+  cd prettytable-$pkgver
+  python setup.py install --root="$pkgdir/"
+}

@@ -1,0 +1,17 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-dnslib
+pkgver=0.9.19
+pkgrel=1
+pkgdesc="Simple library to encode/decode DNS wire-format packets"
+arch=('any')
+url="https://bitbucket.org/paulc/dnslib"
+license=('custom:BSD')
+depends=('python')
+source=("https://pypi.io/packages/source/d/dnslib/dnslib-$pkgver.tar.gz")
+sha512sums=('3b49bfc9e566ecbd648899fe9bb367b7463a1ba4a2b4487ebdf342918dd0bf9e6281fc62e18568164490c0a22f842bedaeffcb61bbeeea0ef75db9d529e6fb46')
+
+package() {
+  cd dnslib-$pkgver
+  python setup.py install -O1 --root="$pkgdir"
+}

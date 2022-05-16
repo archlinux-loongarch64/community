@@ -1,0 +1,91 @@
+# Maintainer: Kyle Keen <keenerd@gmail.com>
+# Contributor: Dominik Heidler <dheidler@gmail.com>
+
+# it looks like the release model has gotten better
+# keeping it more modular for now though
+
+pkgname=bladerf
+pkgver=2021.03
+_FPGAver=0.12.0
+_firmver=2.4.0
+_noOScommit=0bba46e  # upstream has pinned a submodule to this
+pkgrel=1
+pkgdesc="Driver, userspace, fpga & firmware for the bladeRF SDR."
+url="https://github.com/Nuand/bladeRF"
+# https://github.com/Nuand/bladeRF/tags
+arch=('x86_64')
+license=('GPL2')
+depends=('libusb')
+makedepends=('cmake' 'help2man' 'doxygen')
+#backup=("etc/bladerf.cfg")
+
+source=(
+    "bladerf-$pkgver.tgz::https://github.com/Nuand/bladeRF/archive/refs/tags/$pkgver.tar.gz"
+    "noOS-$_noOScommit.tgz::https://github.com/analogdevicesinc/no-OS/archive/$_noOScommit.tar.gz"
+    "hostedxA4-$_FPGAver.rbf::https://nuand.com/fpga/v$_FPGAver/hostedxA4.rbf"
+    "hostedxA9-$_FPGAver.rbf::https://nuand.com/fpga/v$_FPGAver/hostedxA9.rbf"
+    "hostedx40-$_FPGAver.rbf::https://nuand.com/fpga/v$_FPGAver/hostedx40.rbf"
+    "hostedx115-$_FPGAver.rbf::https://nuand.com/fpga/v$_FPGAver/hostedx115.rbf"
+    "https://www.nuand.com/fx3/bladeRF_fw_v$_firmver.img")
+
+md5sums=('8aefb413d8b9d26ead85a533bae37fa1'
+         '2c06ff9297d8beb0482a1b0b5e4d3128'
+         'ca7ff3840d1f3017043f120ea2400fc2'
+         '42c6c6e8e95b232aaf2e6801662c2752'
+         '93ab4d27170e1bbcd84768d4a51214f6'
+         'a31999827d609adeb9ef3511ec6f8d65'
+         '337f570f2e3fdb26abde0f0765196d92')
+
+# bladeRF-cli is bundled with libbladeRF
+# bladeRF-cli can use libtecla (aur)?
+
+prepare() {
+  cd "$srcdir/bladeRF-$pkgver"
+  # FS#47168
+  sed -i 's|MODE.*$|TAG+="uaccess"|' host/misc/udev/*.rules.in
+
+  # todo, report warning
+  sed -i '94i add_definitions(-Wno-error=format-truncation)' host/CMakeLists.txt
+
+  # FS#55326
+  sed -i '44s/^else/#&/' host/misc/udev/CMakeLists.txt
+
+  # manually replace the submodules
+  # because "git submodule init/update" doesn't work with a release tarball
+  rmdir --ignore-fail-on-non-empty thirdparty/analogdevicesinc/no-OS
+  ln -s "$srcdir/no-OS-$_noOSver"* thirdparty/analogdevicesinc/no-OS
+}
+
+build() {
+  cd "$srcdir/bladeRF-$pkgver/host"
+  mkdir -p build
+  cd build
+  CFLAGS+=" -Wno-error=stringop-truncation" cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DINSTALL_UDEV_RULES=ON \
+    -DBUILD_DOCUMENTATION=ON \
+    -DCMAKE_INSTALL_LIBDIR:PATH=lib \
+    -Dusb_LIBRARY:FILEPATH=/usr/lib/libusb-1.0.so \
+    -DCMAKE_INSTALL_PREFIX=/usr ../ \
+    -DUDEV_RULES_PATH=/usr/lib/udev/rules.d
+  make
+  # ENABLE_FX3_BUILD needs cypress toolchain
+  # really really wants to put files in /usr/lib64
+}
+
+package() {
+  cd "$srcdir/bladeRF-$pkgver/host/build"
+  make DESTDIR="${pkgdir}" install
+  cd "$srcdir"
+  install -Dm644 "bladeRF_fw_v$_firmver.img" "$pkgdir/usr/share/bladerf/firmware/bladeRF_fw_v$_firmver.img"
+  install -Dm644 hostedxA4-$_FPGAver.rbf     "$pkgdir/usr/share/bladerf/fpga/hostedxA4.rbf"
+  install -Dm644 hostedxA9-$_FPGAver.rbf     "$pkgdir/usr/share/bladerf/fpga/hostedxA9.rbf"
+  install -Dm644 hostedx40-$_FPGAver.rbf     "$pkgdir/usr/share/bladerf/fpga/hostedx40.rbf"
+  install -Dm644 hostedx115-$_FPGAver.rbf    "$pkgdir/usr/share/bladerf/fpga/hostedx115.rbf"
+
+  # FS#54105
+  cd "$pkgdir/usr/lib/udev/rules.d/"
+  mv 88-nuand-bladerf1.rules   70-nuand-bladerf1.rules
+  mv 88-nuand-bladerf2.rules   70-nuand-bladerf2.rules
+  mv 88-nuand-bootloader.rules 70-nuand-bootloader.rules
+}

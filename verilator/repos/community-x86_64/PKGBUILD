@@ -1,0 +1,38 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Marcin (CTRL) Wieczorek <marcin@marcin.co>
+# Contributor: Jeffrey Tolar <tolar.jeffrey at gmail dot com>
+
+pkgname=verilator
+pkgver=4.220
+pkgrel=1
+pkgdesc='The fastest free Verilog HDL simulator'
+url='https://www.veripool.org/projects/verilator/wiki/Intro'
+arch=('x86_64')
+license=('LGPL')
+depends=('perl')
+optdepends=('systemc')
+makedepends=('python' 'systemc')
+source=("https://github.com/verilator/verilator/archive/v$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('d7435de47cf66a2a360b154e2073f75a540100cb66249eeaa24de78d60bc9376ebbe6cac6df3a421c4f6c7b883eb17e47118835b9b2ed973486d4291fe8fc588')
+
+prepare() {
+  cd verilator-$pkgver
+  sed -i 's/#_MY_CXX_CHECK_SET(CFG_CXXFLAGS_STD_NEWEST,-std=c++17)/_MY_CXX_CHECK_SET(CFG_CXXFLAGS_STD_NEWEST,-std=c++17)/' configure.ac
+  autoconf
+}
+
+build() {
+  cd verilator-$pkgver
+  ./configure --prefix=/usr
+  make
+}
+
+check() {
+  cd verilator-$pkgver
+  make test
+}
+
+package() {
+  cd verilator-$pkgver
+  make install DESTDIR="$pkgdir"
+}

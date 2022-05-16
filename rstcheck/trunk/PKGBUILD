@@ -1,0 +1,34 @@
+# Maintainer: Daniel M. Capella <polyzen@archlinux.org>
+
+pkgname=rstcheck
+pkgver=3.5.0
+pkgrel=1
+pkgdesc='Checks syntax of reStructuredText and code blocks nested within it'
+arch=('any')
+url=https://github.com/myint/rstcheck
+license=('MIT')
+depends=('python-docutils')
+makedepends=('python-setuptools')
+checkdepends=('python-sphinx')
+optdepends=('python-sphinx: Sphinx support')
+source=("https://files.pythonhosted.org/packages/source/${pkgname::1}/$pkgname/$pkgname-$pkgver.tar.gz")
+sha256sums=('d4b035300b7d898403544f38c3a4980171ce85f487d25e188347bbafb6ee58c0')
+b2sums=('f773ccac6f98a317b195c0e6d948fd637fb5e93e187b64614f92aa315ed21e112e1c7ba9850500ce02210543388b716ffe1a58f5ef2a387697ed98d75fb4be40')
+
+build() {
+  cd rstcheck-$pkgver
+  python setup.py build
+}
+
+check() {
+ cd rstcheck-$pkgver
+ ./test_rstcheck.py
+}
+
+package() {
+  cd rstcheck-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1 --skip-build
+  install -Dm644 -t "$pkgdir"/usr/share/licenses/rstcheck LICENSE
+}
+
+# vim:set ts=2 sw=2 et:

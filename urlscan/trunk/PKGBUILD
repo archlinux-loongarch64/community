@@ -1,0 +1,28 @@
+# Maintainer: Brett Cornwall <ainola@archlinux.org>
+# Maintainer: Maxim Baz <$pkgname at maximbaz dot com>
+
+pkgname=urlscan
+pkgver=0.9.9
+pkgrel=1
+pkgdesc="Mutt and terminal url selector"
+url="https://github.com/firecat53/urlscan"
+arch=('any')
+license=('GPL2')
+depends=('python-urwid')
+makedepends=('python-setuptools')
+optdepends=(
+    'xclip: Clipboard support for X11 environments'
+    'wl-clipboard: Clipboard support for Wayland'
+)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/firecat53/urlscan/archive/$pkgver.tar.gz")
+sha256sums=('5c63206a6afbe7773903fa928833bd28af5887fc9d13f0e1e9529fed560a5eb8')
+
+build() {
+    cd "$pkgname-$pkgver"
+    python setup.py build
+}
+
+package() {
+    cd "$pkgname-$pkgver"
+    python setup.py install --root="$pkgdir/" --optimize=1 --skip-build
+}

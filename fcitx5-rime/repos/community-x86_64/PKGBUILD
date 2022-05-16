@@ -1,0 +1,28 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: csslayer <wengxt AT gmail com>
+
+pkgname=fcitx5-rime
+pkgver=5.0.12
+pkgrel=1
+pkgdesc="RIME support for Fcitx5"
+arch=('x86_64')
+url="https://github.com/fcitx/fcitx5-rime"
+license=('GPL')
+depends=('fcitx5' 'librime')
+makedepends=('extra-cmake-modules' 'ninja')
+source=("https://download.fcitx-im.org/fcitx5/$pkgname/$pkgname-$pkgver.tar.xz"{,.sig})
+sha512sums=('2c078c1bf2c12bb24e6120fcee01a2f91295eff3d077b6bc7e86b1718e90f104a93b32e340e34509283d5f0c9317c13799b549a649c912a77843bd9edfcc51d7'
+            'SKIP')
+validpgpkeys=('2CC8A0609AD2A479C65B6D5C8E8B898CBF2412F9') # Weng Xuetian <wengxt@gmail.com>
+
+build(){
+  cd $pkgname-$pkgver
+
+  cmake -GNinja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib .
+  ninja
+}
+
+package() {
+  cd $pkgname-$pkgver
+  DESTDIR="$pkgdir" ninja install
+}

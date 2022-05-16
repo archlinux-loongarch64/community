@@ -1,0 +1,30 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-cachetools
+pkgver=5.0.0
+pkgrel=1
+pkgdesc="Extensible memoizing collections and decorators"
+url="https://github.com/tkem/cachetools"
+license=('MIT')
+arch=('any')
+depends=('python')
+makedepends=('python-setuptools')
+checkdepends=('python-pytest-runner')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/tkem/cachetools/archive/v$pkgver.tar.gz")
+sha512sums=('3fae1fad34e8be963a3c8249b340a327de55e586faed28c38b99dd3fe0b294461669a6a60264ac308d7d3d159eaca400dd77782562f602703f9c7c44430db0d4')
+
+build() {
+  cd "$srcdir"/cachetools-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd "$srcdir"/cachetools-$pkgver
+  python setup.py pytest
+}
+
+package() {
+  cd cachetools-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1
+  install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}

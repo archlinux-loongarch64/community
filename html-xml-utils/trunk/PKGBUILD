@@ -1,0 +1,31 @@
+# Maintainer: George Rawlinson <george@archlinux.org>
+# Contributor: matoro <throwaway19587@gmail.com>
+# Contributor: Patrick Burroughs (Celti) <celti@celti.name>
+
+pkgname=html-xml-utils
+pkgver=8.4
+pkgrel=1
+pkgdesc='Utilities for manipulating HTML and XML files'
+arch=('x86_64')
+url='https://www.w3.org/Tools/HTML-XML-utils/'
+license=('W3C')
+depends=('curl' 'libidn2')
+source=("$url/$pkgname-$pkgver.tar.gz")
+sha512sums=('8e011e8bb73b0ca46af8aa54f8080b0ba0ac074910056571ab030d5b8ac2156a5ba0342bfe1ddc3a60ea8ec7c2149b58fc126fc59204fead5f0366ebb8fa46a7')
+b2sums=('84e524c1850088f9664fb937798cc3667ab459adeff5f48b0c96f5e82608c54a02f2d08b67b3ee5094169948f6dd44deb74ac697bea565577fd8762ff61ed401')
+
+build() {
+  cd "$pkgname-$pkgver"
+  ./configure --prefix=/usr
+  make
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  make check
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make DESTDIR="$pkgdir" install
+}

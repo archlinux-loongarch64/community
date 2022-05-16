@@ -1,0 +1,35 @@
+# Maintainer: Jaroslav Lichtblau <svetlemodry@archlinux.org>
+# Contributor: Eric Belanger <eric@archlinux.org>
+# Contributor: SmackleFunky <smacklefunky@optusnet.com.au>
+
+pkgname=ltris
+pkgver=1.2.3
+pkgrel=1
+pkgdesc="A tetris clone where you have a bowl with blocks falling down"
+arch=('x86_64')
+url="http://lgames.sourceforge.net/index.php?project=LTris"
+license=('GPL')
+depends=('sdl_mixer')
+backup=('var/games/ltris.hscr')
+install=$pkgname.install
+changelog=$pkgname.changelog
+source=(https://downloads.sourceforge.net/lgames/$pkgname-$pkgver.tar.gz)
+sha512sums=('0a910a764fea78b127ae637a28b2e509a9bb4b21f1bd0ee213d07ceaf6885d4d23a6d7098be2c64bfcd47aa447ac8431f7252f09e34aff778877cc2effaa66f8')
+
+build() {
+  cd "${srcdir}"/${pkgname}-${pkgver}
+
+  ./configure --prefix=/usr --localstatedir=/var/games
+  make
+}
+
+package() {
+  cd "${srcdir}"/${pkgname}-${pkgver}
+
+  make DESTDIR="${pkgdir}" install
+
+  install -d "${pkgdir}"/usr/share/pixmaps
+  install -m644 icons/ltris{16,32,48}.xpm "${pkgdir}"/usr/share/pixmaps
+#FS#37951 fix  
+  chmod 775 "${pkgdir}"/var/games  
+}

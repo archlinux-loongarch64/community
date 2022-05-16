@@ -1,0 +1,39 @@
+# Maintainer: NicoHood <archlinux {cat} nicohood {dog} de>
+# PGP ID: 97312D5EB9D7AE7D0BD4307351DAE9B7C1AE9161
+# Contributor: Morgenstern <charles [at] charlesbwise [dot] com>
+
+pkgname=cherrytree
+pkgver=0.99.46
+pkgrel=1
+pkgdesc="Hierarchical note-taking application"
+arch=('x86_64')
+url="https://www.giuspen.com/cherrytree/"
+license=('GPL3')
+depends=('fmt' 'gspell' 'gtksourceviewmm' 'libxml++2.6' 'uchardet')
+makedepends=('cmake' 'python' 'spdlog')
+checkdepends=('xorg-server-xvfb')
+source=("${pkgname}-${pkgver}.tar.xz::https://www.giuspen.com/software/${pkgname}_${pkgver}.tar.xz"
+        "${pkgname}-${pkgver}.tar.xz.asc::https://www.giuspen.com/software/${pkgname}_${pkgver}.tar.xz.asc")
+sha512sums=('e7ca36e320485aa1a068572b135d032276a2b91ad78674a0a064761766a6f22061022da2569035c495eb8f3b0f0e1aa07bda9493f6263f219a04232a7ddae6ff'
+            'SKIP')
+validpgpkeys=('C7BF38CE0BD442C2369AA984049128A20CE0648D') # Giuseppe Penone <giuspen [at] gmail [dot] com>
+
+build() {
+  cmake \
+  -B "${pkgname}_${pkgver}/build" \
+  -S "${pkgname}_${pkgver}" \
+  -DINSTALL_GTEST:BOOL='OFF' \
+  -DAUTO_RUN_TESTING:BOOL='OFF' \
+  -Wno-dev
+  make -C "${pkgname}_${pkgver}/build"
+}
+
+check() {
+  cd "${pkgname}_${pkgver}"
+  xvfb-run ./"${_pkgname}/build/run_tests_with_x_1"
+  xvfb-run ./"${_pkgname}/build/run_tests_with_x_2"
+}
+
+package() {
+  make -C "${pkgname}_${pkgver}/build" DESTDIR="${pkgdir}" install
+}

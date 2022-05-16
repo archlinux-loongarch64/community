@@ -1,0 +1,40 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Maxim Andersson <thesilentboatman@gmail.com>
+# Contributor: NicoHood <archlinux {cat} nicohood {dog} de>
+
+_name=progressbar2
+pkgname=python-progressbar
+pkgdesc="A progress bar for Python"
+pkgver=4.0.0
+pkgrel=1
+arch=(any)
+url="https://github.com/WoLpH/python-progressbar"
+license=(BSD)
+depends=(python-six python-utils)
+makedepends=(python-setuptools python-sphinx)
+checkdepends=(python-pytest python-freezegun)
+source=("https://files.pythonhosted.org/packages/source/${_name::1}/${_name}/${_name}-${pkgver}.tar.gz"{,.asc})
+sha512sums=('b9b9dabb3093e42bc6f40c0e284caae2d29ebfa450db379c214a5ae39e7ccb8c690655da21a44882d0b68f24d83f55a3342671087a25ada168bce9d236685666'
+            'SKIP')
+b2sums=('1616f1b9c5f720f370dc9eb02ba37cf83391c853a525fca523fb33af1b580f38647b835a83558674a78dacc33bf7652cb9af8799ad13763f62d33417abaa35cf'
+        'SKIP')
+validpgpkeys=('149325FD15904E9C4EB89E95E81444E9CE1F695D') # Rick van Hattem <wolph@wol.ph>
+
+build() {
+  cd "${_name}-${pkgver}"
+  python setup.py build
+}
+
+check() {
+  cd "${_name}-${pkgver}"
+  export PYTHONPATH="${PWD}/build:${PYTHONPATH}"
+  # Don't write pyc files of tests so the package is reproducible.
+  PYTHONDONTWRITEBYTECODE=1 pytest -v -c /dev/null
+}
+
+package() {
+  cd "${_name}-${pkgver}"
+  python setup.py install --optimize=1 --root="${pkgdir}"
+  install -vDm 644 {CHANGES,CONTRIBUTING,README}.rst -t "${pkgdir}/usr/share/doc/${pkgname}"
+  install -vDm 644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}

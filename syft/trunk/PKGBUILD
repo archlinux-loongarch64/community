@@ -1,0 +1,36 @@
+# Maintainer: Christian Rebischke <chris.rebischke@archlinux.org>
+
+pkgname=syft
+pkgver=0.43.0
+pkgrel=1
+pkgdesc="CLI tool and library for generating a Software Bill of Materials from container images and filesystems"
+arch=('x86_64')
+url="https://github.com/anchore/syft"
+license=('Apache')
+makedepends=('go' 'git')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/anchore/${pkgname}/archive/v${pkgver}.tar.gz")
+sha512sums=('6f6f71ec77df0049b8f674248bbfe1de8f1ac2ffb90b8bcb7d8db7d4e4f9a6ba11fa1415f10af16253891b20eefc65fdf9b046b29081aae5ecf4b5794b912200')
+b2sums=('8aedf2e883263187eb082e67bfbcb8a33912aec95e7340474058c72736b288ab9303822f3f1649c951d18d2cf8fb8e4f454b37900210755bc67bf09539b45b59')
+
+build(){
+  cd "${pkgname}-${pkgver}"
+  export CGO_CPPFLAGS="${CPPFLAGS}"
+  export CGO_CFLAGS="${CFLAGS}"
+  export CGO_CXXFLAGS="${CXXFLAGS}"
+  export CGO_LDFLAGS="${LDFLAGS}"
+  export GOFLAGS="-buildmode=pie -ldflags=-linkmode=external -trimpath -mod=readonly -modcacherw"
+  mkdir build
+  go build -o build/ ./...
+}
+
+# disabled, needs docker
+# check() {
+#  cd "${pkgname}-${pkgver}"
+#  go test -v ./...
+# }
+
+package() {
+  cd "${pkgname}-${pkgver}"
+  install -Dm755 build/syft "${pkgdir}/usr/bin/${pkgname}"
+}
+

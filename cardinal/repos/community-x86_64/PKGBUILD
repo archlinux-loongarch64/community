@@ -1,0 +1,142 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+pkgbase=cardinal
+pkgname=(cardinal cardinal-data cardinal-jack cardinal-lv2 cardinal-vst cardinal-vst3)
+pkgver=22.04
+pkgrel=1
+pkgdesc="Virtual modular synthesizer"
+arch=(x86_64)
+url="https://github.com/DISTRHO/Cardinal"
+license=(GPL3)
+makedepends=(dbus file gcc-libs gendesk git glibc jansson libarchive libglvnd
+liblo libsndfile libsamplerate libx11 libxext libxrandr mold python speexdsp)
+# lv2lint needs the additional lv2-extensions from mod-sdk:
+# https://github.com/moddevices/mod-sdk/blob/master/mod.lv2/mod.ttl#L174
+# checkdepends=(kxstudio-lv2-extensions lv2 lv2lint xorg-server-xvfb)
+options=(debug)
+source=(
+  https://github.com/DISTRHO/$pkgbase/releases/download/$pkgver/$pkgbase-$pkgver.tar.xz
+  $pkgbase.svg::https://raw.githubusercontent.com/DISTRHO/Cardinal/eb95b5990cf734c10f2caab1a246eac893f0266d/plugins/Cardinal/orig/distrho.svg
+)
+sha512sums=('a7888e69b92d0d4b6a446d6ec8044c0a5b57055821ad8084dba705efd61496cbfb0a66a452906b847a0dfd6b6a6ed8e38d08e09ed8fef81bbc35612871e7a2a1'
+            'e2b68f76aba6847e7fba7ae087f7019dfa129d685a4ffe8af41c69db295603dd03c8fe65deb024f7f3f956253d7dd6bd2c38fdd0a9c61f35c11df9df5e42659a')
+b2sums=('f5367efa6739f47b2de8c07440939fcfed9535abeedba63f9523959f0c8536c27ea16200b653e4124a7583228a45094a99ff33e72639627f1ffce40a2c3c816f'
+        '4dc447e473f30714316a0c6d0e385b3c39145258a13cb7dae83b54a1c8118d3090972505b490bbe97c00171ed9954ab23f5bc18e6a6f4f28929d69dd89e042b4')
+
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
+  done
+}
+
+prepare() {
+  gendesk -n \
+          --exec Cardinal \
+          --name Cardinal \
+          --pkgname studio.kx.distrho.Cardinal \
+          --pkgdesc "$pkgdesc JACK standalone" \
+          --icon $pkgbase \
+          --genericname "Virtual modular synthesizer"
+}
+
+build() {
+  export CFLAGS+=" -B/usr/lib/mold"
+  export CXXFLAGS+=" -B/usr/lib/mold"
+  make PREFIX=/usr SYSDEPS=true WITH_LTO=true -C $pkgname-$pkgver
+}
+
+# check() {
+#   declare -A _links=(
+#     ["Cardinal"]="https://distrho.kx.studio/plugins/cardinal"
+#     ["CardinalFX"]="https://distrho.kx.studio/plugins/cardinal#fx"
+#     ["CardinalSynth"]="https://distrho.kx.studio/plugins/cardinal#synth"
+#   )
+# 
+#   for _name in Cardinal{,FX,Synth}; do
+#     xvfb-run lv2lint -s "lv2_generate_ttl" -Mpack -I $pkgname-$pkgver/bin/$_name.lv2 "${_links[$_name]}"
+#   done
+# }
+
+package_cardinal() {
+  depends=(cardinal-jack cardinal-lv2 cardinal-vst cardinal-vst3)
+
+  make PREFIX=/usr SYSDEPS=true DESTDIR="$pkgdir" install -C $pkgbase-$pkgver
+
+  (
+    cd "$pkgdir"
+    _pick $pkgbase-data usr/share/$pkgbase
+    _pick $pkgbase-data usr/share/doc
+    _pick $pkgbase-jack usr/bin/
+    _pick $pkgbase-lv2 usr/lib/lv2/
+    _pick $pkgbase-vst usr/lib/vst/
+    _pick $pkgbase-vst3 usr/lib/vst3/
+  )
+}
+
+package_cardinal-data() {
+  pkgdesc+=" - data"
+
+  mv -v $pkgbase-data/* "$pkgdir"
+}
+
+package_cardinal-jack() {
+  pkgdesc+=" - JACK standalone"
+  groups=(pro-audio)
+  depends=(cardinal-data gcc-libs glibc jack jansson libglvnd libx11 libxext
+  libxrandr speexdsp libdbus-1.so libarchive.so liblo.so libmagic.so
+  libsndfile.so libsamplerate.so)
+  optdepends=(
+    'carla: for carla module and ildaeil plugin host'
+    'mpv: for experimental video support'
+  )
+
+  mv -v $pkgbase-jack/* "$pkgdir"
+  install -vDm 644 *.desktop -t "$pkgdir/usr/share/applications"
+  install -vDm 644 $pkgbase.svg -t "$pkgdir/usr/share/icons/hicolor/scalable/apps/"
+}
+
+package_cardinal-lv2() {
+  pkgdesc+=" - LV2 plugin"
+  groups=(lv2-plugins pro-audio)
+  depends=(cardinal-data gcc-libs glibc jansson libglvnd libx11 libxext
+  libxrandr lv2-host speexdsp libdbus-1.so libarchive.so liblo.so libmagic.so
+  libsndfile.so libsamplerate.so)
+  optdepends=(
+    'carla: for carla module and ildaeil plugin host'
+    'mpv: for experimental video support'
+  )
+
+  mv -v $pkgbase-lv2/* "$pkgdir"
+}
+
+package_cardinal-vst() {
+  pkgdesc+=" - VST2 plugin"
+  groups=(pro-audio vst-plugins)
+  depends=(cardinal-data gcc-libs glibc jansson libglvnd libx11 libxext
+  libxrandr speexdsp vst-host libdbus-1.so libarchive.so liblo.so libmagic.so
+  libsndfile.so libsamplerate.so)
+  optdepends=(
+    'carla: for carla module and ildaeil plugin host'
+    'mpv: for experimental video support'
+  )
+
+  mv -v $pkgbase-vst/* "$pkgdir"
+}
+
+package_cardinal-vst3() {
+  pkgdesc+=" - VST3 plugin"
+  groups=(pro-audio vst3-plugins)
+  depends=(cardinal-data gcc-libs glibc jansson libglvnd libx11 libxext
+  libxrandr speexdsp vst3-host libdbus-1.so libarchive.so liblo.so libmagic.so
+  libsndfile.so libsamplerate.so)
+  optdepends=(
+    'carla: for carla module and ildaeil plugin host'
+    'mpv: for experimental video support'
+  )
+
+  mv -v $pkgbase-vst3/* "$pkgdir"
+}

@@ -1,0 +1,42 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+_name=diff_cover
+pkgname=python-diff-cover
+pkgver=6.5.0
+pkgrel=1
+pkgdesc="Automatically find diff lines that need test coverage"
+arch=(any)
+url="https://github.com/Bachmann1234/diff_cover"
+license=(Apache)
+depends=(python-chardet python-jinja python-pluggy python-pygments)
+makedepends=(python-build python-installer python-poetry python-wheel)
+checkdepends=(python-pytest python-pytest-mock python-tomli)
+optdepends=('python-tomli: for TOML support')
+source=(https://files.pythonhosted.org/packages/source/${_name::1}/$_name/$_name-$pkgver.tar.gz{,.asc})
+sha512sums=('c4fdfad930150a1f67e46d1fa228bf8fd3201624ab5a529f7d26d635a111fb40cd28c2afb1908188e8c23f9d823a72c9a35818f2ab7a9d1233625e71068d2ed7'
+            'SKIP')
+b2sums=('a7f520106da428f7c62f62ba44fd8e0104337dd83f6d550ea3176fbb8adf5a639606469bb2fafbcac6aa9d567f9883c0cbfb8e763d7f8feae98779808efd2432'
+        'SKIP')
+validpgpkeys=('54CAEABCAC2956D407348256972401BDE60128CB') # Matt Bachmann <matt.bachmann@lola.com>
+
+build() {
+  cd $_name-$pkgver
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  local _site_packages=$(python -c "import site; print(site.getsitepackages()[0])")
+
+  cd $_name-$pkgver
+  # install to temporary location, as importlib is used
+  python -m installer --destdir=test_dir dist/*.whl
+  export PYTHONPATH="test_dir/$_site_packages:$PYTHONPATH"
+  # ignore integration and code style checks
+  pytest -vv --ignore 'tests/test_integration.py' --ignore 'tests/test_violations_reporter.py' --ignore 'tests/test_clover_violations_reporter.py'
+}
+
+package() {
+  cd $_name-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -vDm 644 README.rst -t "$pkgdir/usr/share/doc/$pkgname"
+}

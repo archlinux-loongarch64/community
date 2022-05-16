@@ -1,0 +1,44 @@
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+# Contributor: Dave Reisner <dreisner@archlinux.org>
+
+pkgname=nawk
+_pkgname=awk
+pkgver=20220122
+pkgrel=1
+pkgdesc='The one, true implementation of AWK'
+url="https://github.com/onetrueawk/$_pkgname"
+license=(custom)
+arch=(x86_64)
+options=(!makeflags)
+depends=(glibc)
+_archive="$_pkgname-$pkgver"
+source=("$url/archive/refs/tags/$pkgver/$_archive.tar.gz"
+        'manpage-naming.patch')
+sha256sums=('720a06ff8dcc12686a5176e8a4c74b1295753df816e38468a6cf077562d54042'
+            'fa1bade363896033a50fbdadc8fa2f490f85a044d11afcd537f317067c70d3b5')
+
+prepare() {
+  cd "$_archive"
+  patch -Np1 < "../${source[1]}"
+}
+
+check() {
+  cd "$_archive"
+  ./REGRESS
+}
+
+build() {
+  cd "$_archive"
+  # the final linking step doesn't honor LDFLAGS, so let's just throw it all
+  # together into CFLAGS.
+  make \
+    "CPPFLAGS=-DHAS_ISBLANK $CPPFLAGS" \
+    "CFLAGS=$CFLAGS $LDFLAGS"
+}
+
+package() {
+  cd "$_archive"
+  install -Dm0755 a.out "$pkgdir/usr/bin/$pkgname"
+  install -Dm0644 $_pkgname.1 "$pkgdir/usr/share/man/man1/$pkgname.1"
+  install -Dm0644 -t "$pkgdir/usr/share/licenses/$pkgname/" LICENSE
+}

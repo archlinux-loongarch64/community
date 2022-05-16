@@ -1,0 +1,32 @@
+# Maintainer: Sergej Pupykin <pupykin.s+arch@gmail.com>
+
+pkgname=stalonetray
+pkgver=0.8.4
+pkgrel=2
+pkgdesc="STAnd-aLONE sysTRAY. It has minimal build and run-time dependencies: the Xlib only."
+arch=('x86_64')
+url="https://github.com/kolbusa/stalonetray"
+license=('GPL')
+depends=('libx11' 'libxpm')
+makedepends=('libxslt' 'docbook-xsl')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/kolbusa/stalonetray/archive/v$pkgver.tar.gz")
+sha512sums=('3afdeb7794171f490c5eca631c574003a00bbed863b9caf4024e1b064772d3c24ea3836f280eeab1d50def67928f4d08d3d375047f43bcc39f16a3250015ff2b')
+
+prepare() {
+  cd "$srcdir"/$pkgname-$pkgver
+  XSLVER=$(pacman -Q docbook-xsl | cut -d' ' -f2 | cut -d- -f1)
+  sed -i "s|/usr/share/sgml/docbook/stylesheet/xsl/nwalsh|/usr/share/xml/docbook/xsl-stylesheets-$XSLVER|g" configure.ac
+}
+
+build() {
+  cd "$srcdir"/$pkgname-$pkgver
+  test -x configure || aclocal && autoheader && autoconf && automake --add-missing
+  ./configure --prefix=/usr
+  make
+}
+
+package() {
+  cd "$srcdir"/$pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+  install -D -m644 stalonetrayrc.sample.in "$pkgdir"/etc/stalonetrayrc # FIXME
+}

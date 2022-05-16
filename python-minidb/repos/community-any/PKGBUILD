@@ -1,0 +1,36 @@
+# Maintainer: Daniel M. Capella <polyzen@archlinux.org>
+# Contributor: Balló György <ballogyor+arch at gmail dot com>
+
+_name=minidb
+pkgname=python-minidb
+pkgver=2.0.6
+pkgrel=1
+pkgdesc='Simple SQLite3 store for Python objects'
+arch=('any')
+url=https://thp.io/2010/minidb/
+license=('ISC')
+depends=('python')
+checkdepends=('python-pytest')
+source=("https://files.pythonhosted.org/packages/source/${_name::1}/$_name/$_name-$pkgver.tar.gz")
+sha256sums=('8bf0aca9b89cb1e8b7bfd8ad8b5a7208bd2fb046e343b3d656ea00f8bcfd6f5e')
+b2sums=('00e070d1cbe1966d44228f6ad13b9280ee8d79b1b37a72d685dc53b05d329e6ee02f77a7cac729e6c4e651d66d88d1fcd7be7f704e91b3ef2dddd8c928bfed50')
+
+build() {
+  cd $_name-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd $_name-$pkgver
+  python -m venv --system-site-packages test-env
+  test-env/bin/python setup.py install --optimize=1 --skip-build
+  test-env/bin/python -m pytest
+}
+
+package() {
+  cd $_name-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1 --skip-build
+
+  install -d "$pkgdir"/usr/share/licenses/$pkgname
+  sed -n '/# Copyright/,/OF THIS SOFTWARE./p' minidb.py > "$pkgdir"/usr/share/licenses/$pkgname/COPYING
+}

@@ -1,0 +1,31 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-responses
+pkgver=0.20.0
+pkgrel=1
+pkgdesc='A utility library for mocking out the `requests` Python library.'
+arch=('any')
+license=('Apache')
+url='https://github.com/getsentry/responses'
+depends=('python-requests' 'python-biscuits' 'python-six')
+makedepends=('python-setuptools')
+checkdepends=('python-pytest' 'python-pytest-localserver')
+source=("https://github.com/getsentry/responses/archive/$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('cce8d6eca05c23ab12ef7e66297dbe1f613c0ac7d46c20b5ea77639cf5be1807ef55e7c71eb5e915ceaa1bc51293a339f9e22a864da0c30c3a676c6c5bea03cd')
+
+build() {
+  cd responses-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd responses-$pkgver
+  pytest
+}
+
+package() {
+  cd responses-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1
+}
+
+# vim:set ts=2 sw=2 et:

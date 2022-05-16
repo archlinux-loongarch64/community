@@ -1,0 +1,39 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Contributor: Alexander Rødseth <rodseth@gmail.com>
+# Contributor: Thomas Dziedzic < gostrc at gmail >
+# Contributor: Tarmo Heiskanen <turskii@gmail.com>
+
+pkgname=python-flask
+pkgver=2.1.1
+pkgrel=1
+pkgdesc='Micro webdevelopment framework for Python'
+url='http://flask.pocoo.org/'
+arch=('any')
+license=('custom:BSD')
+depends=('python-werkzeug' 'python-jinja' 'python-itsdangerous' 'python-click')
+makedepends=('python-build' 'python-installer' 'python-wheel')
+checkdepends=('python-pytest')
+optdepends=(
+  'python-asgiref: async functions and views'
+  'python-dotenv: loading env vars from files'
+)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/pallets/flask/archive/${pkgver}.tar.gz")
+sha512sums=('b761ce2f8f0562241f97be1172a87576aec8a7dbe8384945ccc35f2b03773f774c86d568a6cf35f7641f264db407fe0c9cd743adc8c879005a6d4b6a098a0b17')
+
+build() {
+  cd "flask-$pkgver"
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd "flask-$pkgver"
+  PYTHONPATH="build/lib" pytest
+}
+
+package() {
+  cd "flask-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm644 LICENSE.rst "$pkgdir/usr/share/licenses/$pkgname/LICENSE.rst"
+}
+
+# vim:set ts=2 sw=2 et:

@@ -1,0 +1,36 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Maintainer: Konstantin Gizdov (kgizdov) <arch@kge.pw>
+
+pkgname=python-tensorflow-estimator
+pkgver=2.8.0
+pkgrel=1
+pkgdesc="A high-level TensorFlow API that greatly simplifies machine learning programming"
+url="https://github.com/tensorflow/estimator"
+license=('APACHE')
+arch=('any')
+depends=('python-wrapt')
+makedepends=('bazel' 'python-wheel' 'python-setuptools' 'python-pip' 'python-tensorflow')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/tensorflow/estimator/archive/v${pkgver}.tar.gz")
+sha512sums=('02a3009fd8f9f560dea6190989af7c58402777a414cd4bf036d24546fc4a747bb8a5515a5d6fea3bdb848cb9604239b19d43096c5f125a1fa434ae8fee44cf0a')
+
+build() {
+  cd estimator-${pkgver}
+
+  bazel build //tensorflow_estimator/tools/pip_package:build_pip_package
+  bazel-bin/tensorflow_estimator/tools/pip_package/build_pip_package ${srcdir}/estimator_pip
+}
+
+check() {
+  cd estimator-${pkgver}
+
+  # Of course, upstream doesn't care about working tests...
+  # Revisit this at some point.
+  # bazel test //tensorflow_estimator/...
+}
+
+package() {
+  cd estimator-${pkgver}
+
+  WHEEL_PACKAGE=$(find "$srcdir"/estimator_pip -name "tensor*.whl")
+  pip install --ignore-installed --upgrade --root "$pkgdir"/ $WHEEL_PACKAGE --no-dependencies
+}

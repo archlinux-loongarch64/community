@@ -1,0 +1,34 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-pytest-asyncio
+pkgver=0.17.1
+pkgrel=1
+pkgdesc="Pytest support for asyncio."
+arch=('any')
+license=('Apache')
+url="https://github.com/pytest-dev/pytest-asyncio/"
+depends=('python-pytest' 'python-typing_extensions')
+makedepends=('python-setuptools-scm')
+checkdepends=('python-flaky' 'python-hypothesis')
+source=("https://github.com/pytest-dev/pytest-asyncio/archive/v$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('691bedb0d84e05179815d9a5c11108568dc59fc8fe6e8549e54e14b83e5e6bcad37d512980ea27f87f927f623c0496bbddf0aff1f44fc78f9bea1d9106b0800c')
+
+export SETUPTOOLS_SCM_PRETEND_VERSION=$pkgver
+
+build() {
+  cd pytest-asyncio-$pkgver
+  python setup.py build
+}
+
+check() {
+  # Hack entry points by installing it
+
+  cd pytest-asyncio-$pkgver
+  python setup.py install --root="$PWD/tmp_install" --optimize=1
+  PYTHONPATH="$PWD/tmp_install/usr/lib/python3.10/site-packages:$PYTHONPATH:$PWD/tests" py.test
+}
+
+package() {
+  cd pytest-asyncio-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1
+}

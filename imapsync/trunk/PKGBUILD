@@ -1,0 +1,35 @@
+# Maintainer: Frederik Schwan <freswa at archlinux dot org>
+
+pkgname=imapsync
+pkgver=2.178
+pkgrel=1
+pkgdesc='IMAP synchronisation, sync, copy or migration tool'
+arch=('any')
+url='https://github.com/imapsync/imapsync'
+license=('custom:imapsync')
+depends=('perl-cgi' 'perl-crypt-openssl-rsa' 'perl-data-uniqid' 'perl-date-manip' 'perl-encode-imaputf7'
+        'perl-file-copy-recursive' 'perl-file-tail' 'perl-html-parser' 'perl-io-socket-inet6'
+        'perl-io-socket-ssl' 'perl-io-tee' 'perl-json-webtoken' 'perl-libwww' 'perl-module-scandeps'
+        'perl-mail-imapclient' 'perl-module-runtime' 'perl-ntlm' 'perl-package-stash'
+        'perl-readonly' 'perl-regexp-common' 'perl-sys-meminfo'
+        'perl-term-readkey' 'perl-unicode-string')
+makedepends=('cpanminus' 'perl-par-packer')
+checkdepends=('inetutils' 'lsb-release' 'time' 'procps-ng' 'perl-test-deep' 'perl-test-fatal'
+              'perl-test-mock-guard' 'perl-test-mockobject' 'perl-test-pod' 'perl-test-requires'
+              'perl-test-warn')
+source=("https://github.com/imapsync/imapsync/archive/refs/tags/${pkgname}-${pkgver}.tar.gz")
+b2sums=('00115b0658c28179556f661fc037e600dee8d58b24c35488c85253200e4032613e6fc1a42fa8b71408e6d6b074458555354bcc2f19ed27026980b8a1eb2ce643')
+
+build() {
+  make -C ${pkgname}-${pkgname}-${pkgver}
+}
+
+check() {
+  make -C ${pkgname}-${pkgname}-${pkgver} test
+}
+
+package() {
+  cd ${pkgname}-${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 LICENSE "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE.txt
+}

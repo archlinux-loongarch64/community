@@ -1,0 +1,26 @@
+# Maintainer: Alexander Epaneshnikov <alex19ep@archlinux.org>
+# Contributor: Stefan Tatschner <stefan@rumpelsepp.org>
+
+pkgname=yadm
+pkgver=3.2.1
+pkgrel=1
+pkgdesc="Yet Another Dotfiles Manager"
+arch=('any')
+url="https://github.com/TheLocehiliosan/yadm"
+license=('GPL3')
+depends=('git' 'awk')
+optdepends=('gnupg: encrypt/decrypt sensitive files'
+            'python-j2cli: use jinja2 templates'
+            'esh: use shell templates')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/TheLocehiliosan/${pkgname}/archive/${pkgver}.tar.gz")
+sha512sums=('8ce9bc66a33fc3841e47293e002b834fac5760dc771ede37adfc47a9e911ddade23c0ef5379cf8f00cf9b24853abbc1263198b8439ca4e8a3acd5787fbd935cb')
+b2sums=('4e0b829ca6f74c1300b78831d64fd95250bcea7779cca672707751e38129a7e618e8a69b2f3862ac6e87cb086de09380e4e624d54c4672c125d16ea8cc3ea11c')
+
+package() {
+	cd $pkgname-$pkgver
+	install -vDm755 yadm -t "$pkgdir/usr/bin"
+	install -vDm644 yadm.1 -t "$pkgdir/usr/share/man/man1"
+	install -vDm644 completion/bash/yadm -t "${pkgdir}/usr/share/bash-completion/completions"
+	install -vDm644 completion/zsh/_yadm -t "${pkgdir}/usr/share/zsh/site-functions"
+	install -vDm644 completion/fish/yadm.fish -t "${pkgdir}/usr/share/fish/vendor_completions.d"
+}

@@ -1,0 +1,39 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+pkgname=tmuxp
+pkgver=1.10.1
+pkgrel=1
+pkgdesc="Tmux session manager built on libtmux"
+arch=(any)
+url="https://tmuxp.git-pull.com/en/latest/"
+license=(MIT)
+depends=(python-click python-colorama python-kaptan python-libtmux)
+makedepends=(python-build python-installer python-poetry python-wheel)
+checkdepends=(python-pytest python-pytest-rerunfailures)
+source=(https://files.pythonhosted.org/packages/source/${pkgname::1}/$pkgname/$pkgname-$pkgver.tar.gz)
+sha512sums=('6d63950fd8d013b72a30efa0b30c3f421933b869388da1a74be90a3e949750bfeb3f07e827ebbbd6601375b40d17fc54e1846bbb3f93e836c91cdbbd0649ca55')
+b2sums=('f9950b4aa905c9801476aaea7233ab8d8bb718dcd8e733225666faee53e030bf45f398317affc622d8ec19adaebd3dd4828c2b27de56933ee6c4f33233be0aea')
+
+build() {
+  cd $pkgname-$pkgver
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd $pkgname-$pkgver
+  # test_workspacebuilder.py::test_pane_order does not return:
+  # https://github.com/tmux-python/tmuxp/issues/377
+  pytest -vv -k "not test_pane_order"
+}
+
+package() {
+  cd $pkgname-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  # license
+  install -vDm 644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname/"
+  # docs
+  install -vDm 644 {CHANGES,README.md} -t "$pkgdir/usr/share/doc/$pkgname/"
+  install -vDm 644 examples/*.{json,yaml} -t "$pkgdir/usr/share/doc/$pkgname/examples/"
+}
+
+# vim:set ts=2 sw=2 et:}

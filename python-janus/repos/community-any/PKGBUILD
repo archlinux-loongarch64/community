@@ -1,0 +1,30 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Bruce Zhang <zttt183525594@gmail.com>
+
+pkgname=python-janus
+pkgver=0.7.0
+pkgrel=1
+pkgdesc="Thread-safe asyncio-aware queue for Python"
+arch=('any')
+url="https://github.com/aio-libs/janus"
+license=('Apache')
+depends=('python-typing_extensions')
+makedepends=('python-setuptools')
+checkdepends=('python-pytest-asyncio')
+source=("https://github.com/aio-libs/janus/archive/v$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('c18a4429d8a18cb05224f978a1bae4f1c6920ca5c3e5e83a3babdb3e468113a0ca13a52ceca651f49e9b132f21a40d81dd128f9b60ff7bbdee6a217d9bd1cdc9')
+
+build() {
+  cd janus-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd janus-$pkgver
+  python -m pytest
+}
+
+package() {
+  cd janus-$pkgver
+  python setup.py install --root="$pkgdir/" --optimize=1 --skip-build
+}

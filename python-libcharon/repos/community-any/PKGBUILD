@@ -1,0 +1,29 @@
+# Maintainer: Jelle van der Waa <jelle@archlinux.org>
+
+pkgname=python-libcharon
+pkgver=4.13.0
+pkgrel=1
+pkgdesc="Python File metadata and streaming library"
+url="https://github.com/Ultimaker/libCharon"
+arch=(any)
+license=("AGPL")
+depends=('python' 'python-dbus')
+makedepends=('python-setuptools')
+checkdepends=('python-pytest')
+source=(libcharon-$pkgver.tar.gz::https://github.com/Ultimaker/libCharon/archive/${pkgver}.tar.gz)
+sha512sums=('cd6e4cd696bcbebe5aa6a53f5222fbb8f982ff21d165adcd8854769b19df2d15ea6287100ba09ddd85ac80d3f86dbfae9ac050ee50f082223bf0acb542413d8c')
+
+build() {
+  cd libCharon-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd libCharon-$pkgver
+  pytest tests
+}
+
+package() {
+  cd libCharon-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1 --skip-build
+}

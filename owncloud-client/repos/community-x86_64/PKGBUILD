@@ -1,0 +1,29 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Kuba Serafinowski <zizzfizzix(at)gmail(dot)com>
+
+pkgname=owncloud-client
+pkgver=2.10.1.7187
+pkgrel=1
+pkgdesc='ownCloud client based on mirall'
+arch=(x86_64)
+url='http://owncloud.org/'
+license=(GPL2)
+depends=(qtkeychain hicolor-icon-theme libcloudproviders)
+makedepends=(extra-cmake-modules python-sphinx qt5-tools doxygen kio)
+optdepends=('python-nautilus: integration with Nautilus' 'nemo-python: integration with Nemo' 'python-caja: integration with Caja')
+backup=('etc/ownCloud/sync-exclude.lst')
+source=(https://download.owncloud.com/desktop/ownCloud/stable/$pkgver/source/ownCloud-$pkgver.tar.xz{,.asc})
+sha256sums=('48d69b2afe73eef8832375c34369968c48052801924792bdb08dd3bb97996f05'
+            'SKIP')
+validpgpkeys=(F05F7DD7953A07DF36579DAA498C45EBE94E7B37) # ownCloud Client Team (Signing Key) <info@owncloud.com>
+
+build() {
+  cmake -B build -S ownCloud-$pkgver \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DDATADIR=share
+  cmake --build build
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+}

@@ -1,0 +1,27 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Josip Ponjavic <josipponjavic at gmail dot com>
+# Contributor: Xu Fasheng <fasheng.xu[AT]gmail.com>
+
+pkgname=deepin-shortcut-viewer
+pkgver=5.0.3
+pkgrel=1
+pkgdesc='Deepin Shortcut Viewer'
+arch=('x86_64')
+url="https://github.com/linuxdeepin/deepin-shortcut-viewer"
+license=('GPL3')
+depends=('deepin-qt5integration')
+makedepends=('qt5-tools')
+groups=('deepin')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/linuxdeepin/deepin-shortcut-viewer/archive/$pkgver.tar.gz")
+sha512sums=('e52065bf4a50043573cd335c0a32e7252d7d5ae60ed57b80e9d198adfc1c5e39086a621a66ada693215a3a830f9f0d68ce3f6523f9f8b3d275599273f77574c9')
+
+build(){
+  cd deepin-shortcut-viewer-$pkgver
+  qmake-qt5 PREFIX=/usr
+  make
+}
+
+package() {
+  cd deepin-shortcut-viewer-$pkgver
+  make INSTALL_ROOT="$pkgdir" install
+}

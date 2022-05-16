@@ -1,0 +1,39 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Sequencer <liujiuyang1994@gmail.com>
+
+pkgname=python-schemdraw
+pkgver=0.13
+pkgrel=1
+pkgdesc="Electrical circuit schematic drawing."
+url="https://bitbucket.org/cdelker/schemdraw"
+license=('BSD')
+arch=('any')
+depends=('python')
+optdepends=('python-matplotlib: for matplotlib backend'
+            'python-ziafont: for svg backend'
+            'python-ziamath: for svg backend'
+            'python-latex2mathml: for svg backend')
+makedepends=('python-setuptools')
+checkdepends=('python-pytest-runner' 'python-nbval' 'python-matplotlib' 'python-ziafont'
+              'python-ziamath' 'python-latex2mathml')
+source=("$pkgname-$pkgver.tar.bz2::https://bitbucket.org/cdelker/schemdraw/get/$pkgver.tar.bz2")
+sha512sums=('ef1b8bc4bc5f4295315d3b033cd965ab72fe9c3f6e5122eb19302870fba0bf55f537f7dc900642382a274857853fbe0d85c26af5aa8940fceb11c1a7a3d32c48')
+
+prepare() {
+  mv cdelker-schemdraw-* schemdraw-$pkgver
+}
+
+build() {
+  cd schemdraw-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd schemdraw-$pkgver
+  python setup.py pytest --addopts --nbval-lax
+}
+
+package() {
+  cd schemdraw-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1
+}

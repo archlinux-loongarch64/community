@@ -1,0 +1,49 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Evgeniy Filimonov <evgfilim1@gmail.com>
+
+pkgname=python-aiogram
+pkgver=2.19
+pkgrel=1
+pkgdesc="A pretty simple and fully asynchronous library for Telegram Bot API written with asyncio and aiohttp"
+arch=('any')
+url="https://github.com/aiogram/aiogram"
+license=('MIT')
+depends=('python-aiohttp' 'python-babel')
+makedepends=('python-setuptools')
+checkdepends=('python-aiohttp-socks' 'python-aioredis' 'python-aresponses' 'python-pytest'
+              'python-pytest-lazy-fixture' 'pifpaf' 'redis')
+optdepends=('python-uvloop: fast, drop-in replacement of the built-in asyncio event loop'
+            'python-ujson: ultra fast JSON encoder and decoder written in pure C'
+            'python-rapidjson: extremely fast C++ JSON parser and serialization library'
+            'python-emoji: emojize and demojize support'
+            'python-aioredis: Redis storage support'
+            'python-aiohttp-socks: SOCKS4(a) and SOCKS5 proxy support'
+#            'python-rethinkdb: RethinkDB storage support'  # No such package yet
+)
+source=("$url/archive/v$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('1f7cc23c20bc42c1a08311bec693d165b27dc0b5602e06b9f054375d0d45127fef7f3ee655ad9df429f740ebdc2c9dc9724e690eaff20304ae02ba93d82c4cbb')
+
+prepare() {
+  cd aiogram-$pkgver
+  sed -e '/import certifi/d' \
+      -e 's|certifi.where()|"/etc/ssl/certs/ca-certificates.crt"|' \
+      -i aiogram/bot/base.py
+}
+
+build() {
+  cd aiogram-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd aiogram-$pkgver
+  pifpaf run redis -- bash -c 'python -m pytest --redis $PIFPAF_REDIS_URL'
+}
+
+package() {
+  cd aiogram-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1 --skip-build
+
+  install -Dm644 LICENSE -t "$pkgdir"/usr/share/licenses/$pkgname/
+  install -Dm644 README.md -t "$pkgdir"/usr/share/doc/$pkgname/
+}

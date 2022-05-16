@@ -1,0 +1,34 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+_name=svglib
+pkgname=python-svglib
+pkgver=1.2.1
+pkgrel=1
+pkgdesc="Read SVG files and convert them to other formats"
+arch=(any)
+url="https://github.com/deeplook/svglib"
+license=(LGPL3)
+depends=(python-lxml python-reportlab python-tinycss2 python-cssselect2)
+makedepends=(python-setuptools)
+checkdepends=(python-pillow python-pytest)
+source=("https://files.pythonhosted.org/packages/source/${_name::1}/${_name}/${_name}-${pkgver}.tar.gz")
+sha512sums=('64c73c31e878c7d3a0fe39306ad9c086f22e57dab93b31e22d6db12df69397b15a115eccdb0113331038d7aaefaea910fb80f8834cdda4c6f433a510b60d79f7')
+b2sums=('ab57e97f0443179fa718427cec1b8d9abc12030a800a89c2dc3dc91235de652182c77431aee289c7ec200c048c06af17be01936b05b2441883c16295e7ac1cf0')
+
+build() {
+  cd "${_name}-$pkgver"
+  python setup.py build
+}
+
+check() {
+  cd "${_name}-$pkgver"
+  export PYTHONPATH="build:${PYTHONPATH}"
+  # disable tests that download stuff and that are broken
+  pytest -v -k "not TestWikipediaSymbols and not TestWikipediaFlags and not test_png_in_svg and not test_external_svg_in_svg"
+}
+
+package() {
+  cd "${_name}-$pkgver"
+  python setup.py install --optimize=1 --root="${pkgdir}"
+  install -vDm 644 {CHANGELOG,CONTRIBUTORS,README}.rst -t "${pkgdir}/usr/share/doc/${pkgname}"
+}

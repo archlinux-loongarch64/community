@@ -1,0 +1,61 @@
+# Maintainer: George Rawlinson <grawlinson@archlinux.org>
+# Contributor: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Gordian Edenhofer <gordian.edenhofer[at]yahoo[dot]de>
+
+pkgname=certbot-apache
+pkgver=1.26.0
+pkgrel=1
+pkgdesc="Apache plugin for Certbot"
+arch=('any')
+license=('Apache')
+url="https://pypi.python.org/pypi/$pkgname"
+replaces=('letsencrypt-apache')
+depends=(
+  'certbot'
+  'python-acme'
+  'python-augeas'
+  'python-setuptools'
+)
+makedepends=(
+  'python-build'
+  'python-wheel'
+  'python-installer'
+)
+checkdepends=('python-pytest')
+source=("https://files.pythonhosted.org/packages/source/${pkgname::1}/$pkgname/$pkgname-$pkgver.tar.gz"{,.asc})
+validpgpkeys=('148C30F6F7E429337A72D992B00B9CC82D7ADF2C'
+              '1B41B758F9A78C7F444C20FA3E5B4152E3ADB1FD'
+              'A2CFB51FA275A7286234E7B24D17C995CD9775F2'
+              '86379B4F0AF371B50CD9E5FF3402831161D1D280'
+              '20F201346BF8F3F455A73F9A780CC99432A28621')
+sha512sums=('198b6097b2594a8657f587e79aade9198e227807ba432b6169c9d177a91429a322d87f9f725a61464b7f202000add93c287bc6776eb7c44b1b96d6c70aac2417'
+            'SKIP')
+b2sums=('40b176134658b5653adc216a316526da171d32fb9d5e8a3fff16d08191e41eb90ccd017c6ceeb8c7862e9a7069a4d78811d049d8ec9c30d6117a475c5233fd2b'
+        'SKIP')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+
+  # nuke setuptools from orbit ^W install_requires
+  sed \
+    -e '/setuptools>=/d' \
+    -i setup.py
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+
+  python -m pytest
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}

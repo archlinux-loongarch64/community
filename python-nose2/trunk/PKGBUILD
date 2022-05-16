@@ -1,0 +1,34 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+_name=nose2
+pkgname=python-nose2
+pkgver=0.11.0
+pkgrel=1
+pkgdesc="The next generation of nicer testing for python"
+arch=(any)
+url="https://github.com/nose-devs/nose2"
+license=(BSD)
+depends=(python-coverage python-six)
+makedepends=(python-setuptools)
+optdepends=('python-coverage: for coverage_plugin'
+            'python-setuptools: for eggdiscovery plugin'
+            'python-sphinx: for doc'
+            'python-sphinx_rtd_theme: for doc'
+            'python-mock: for doc')
+source=("https://files.pythonhosted.org/packages/source/${_name::1}/${_name}/${_name}-${pkgver}.tar.gz")
+sha512sums=('5210098d9096a14a8c3565531d4404da4d2aa2b5b4d5e2d5cd3b9262c112281bb5b08deed1ac6a1a6c04f876702d9de32ae148498a3743bcbc03917cee8d09b2')
+b2sums=('2625a4cc30de8a40c7c36bd6c7fe0df8f9a32217e0f3c2694dac1226056f3cbc85ab58b2daa7a9903ea1f01a2bcdf5ea8ae113a33d8902034c04ab2f56af0852')
+
+build() {
+  cd $_name-$pkgver
+  python setup.py build
+}
+
+package() {
+  cd $_name-$pkgver
+  python setup.py install --optimize=1 --root="$pkgdir"
+  # license
+  install -vDm 644 license.txt -t "$pkgdir/usr/share/licenses/$pkgname/"
+  # docs
+  install -vDm 644 {AUTHORS,README.rst} -t "$pkgdir/usr/share/doc/$pkgname/"
+}

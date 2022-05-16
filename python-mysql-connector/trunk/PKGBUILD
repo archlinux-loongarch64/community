@@ -1,0 +1,26 @@
+# Maintainer: Lukas Fleischer <lfleischer@archlinux.org>
+# Contributor: Evgeniy Alekseev <arcanis at archlinux dot org>
+# Contributor: Raphaël Doursenaud <rdoursenaud at free dot fr>
+
+pkgname=python-mysql-connector
+_pkgname=mysql-connector-python
+pkgver=8.0.28
+pkgrel=1
+pkgdesc="A standardized database driver for Python platforms and development"
+arch=('any')
+url="https://dev.mysql.com/downloads/connector/python/"
+license=('GPL')
+depends=('python' 'python-dnspython')
+makedepends=('python-setuptools')
+source=("https://github.com/mysql/mysql-connector-python/archive/$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('7f03df4dae7766c9c207b408eb0e451c87fd97d84200573cdba3526b812b15c2078fcf3a697d9801b552164c4a0b7e8efe5450036d3c232e8c4402cb61849a6d')
+
+build() {
+	cd "${srcdir}/${_pkgname}-${pkgver}"
+	python setup.py build
+}
+
+package() {
+	cd "${srcdir}/${_pkgname}-${pkgver}"
+	python setup.py install --root="${pkgdir}" --optimize=1
+}

@@ -1,0 +1,36 @@
+# Maintainer: Jelle van der Waa <jelle@archlinux.org>
+# Maintainer: Frederik Schwan <freswa at archlinux dot org>
+# Contributor: Sander Boom <sanderboom@gmail.com>
+
+pkgname=ansible-lint
+pkgver=6.0.2
+pkgrel=4
+pkgdesc="Checks playbooks for practices and behaviour that could potentially be improved."
+arch=('any')
+url="https://github.com/ansible/ansible-lint"
+license=('GPL3')
+depends=('python' 'ansible-core' 'python-ruamel-yaml' 'python-pyaml' 'python-rich' 'python-packaging'
+          'python-wcmatch' 'python-enrich' 'python-tenacity' 'python-ansible-compat' 'yamllint')
+makedepends=('python-build' 'python-installer' 'python-wheel')
+optdepends=('ansible: check official ansible collections')
+source=(https://github.com/ansible/ansible-lint/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz
+        disable_use_scm_version.patch)
+b2sums=('3334049dd1dc05444c6c362601da8d7e808c6b3473e87613b8892651cecb76058cb0aa370aa5d00cf6bc76ee3b096480fdce52facee4f043c01d6c76084860ba'
+        'cf911567b040c8938ca589fde3c93b39cfba29ca1a373b8af354450a4f880d475463b0c81440fb9bfacc7b1f93736a5ae5ab58c7fdb30d8f03d1996754a738f3')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+  # stop setuptools from using the scm version which doesn't exist in this context
+  patch -Np1 < "${srcdir}"/disable_use_scm_version.patch
+  sed -i "/^\[metadata\]/a version = ${pkgver}" setup.cfg
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  python -m build --wheel --skip-dependency-check --no-isolation
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  python -m installer --destdir="${pkgdir}" dist/*.whl
+}

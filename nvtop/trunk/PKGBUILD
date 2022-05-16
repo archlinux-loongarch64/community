@@ -1,0 +1,27 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Maxime Schmitt <maxime.schmitt91@gmail.com>
+
+pkgname=nvtop
+pkgver=1.2.2
+pkgrel=1
+pkgdesc="An htop like monitoring tool for NVIDIA GPUs"
+arch=('x86_64')
+url="https://github.com/Syllo/nvtop"
+license=('GPL3')
+depends=('nvidia-utils' 'ncurses')
+makedepends=('cmake' 'cuda')
+source=("https://github.com/Syllo/nvtop/archive/$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('034ca55e773a34b433cc54e6dabf36911973b2ec0669a7f2757f9edcd6ae6e14493c8e31ecb9d7a8e45026ddd97cf543fa57b046d96de6cc650614cd539a6c6a')
+
+build() {
+  cd $pkgname-$pkgver
+
+  cmake -DCMAKE_INSTALL_PREFIX=/usr .
+  make
+}
+
+package() {
+  cd $pkgname-$pkgver
+
+  make DESTDIR="$pkgdir/" install
+}

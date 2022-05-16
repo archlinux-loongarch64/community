@@ -1,0 +1,94 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: jason ryan <jasonwryan@gmail.com>
+# Contributor: Christian Rebischke <chris.rebischke@archlinux.org>
+
+pkgbase=profanity
+pkgname=('profanity' 'profanity-gtk')
+pkgver=0.12.1
+pkgrel=2
+epoch=1
+pkgdesc='Console based XMPP client'
+url='http://www.profanity.im'
+arch=('x86_64')
+license=('GPL3')
+_clidepends=(
+  'libcurl.so' 'libncursesw.so' 'expat' 'glib2' 'libotr'
+  'libnotify.so' 'libcrypt.so'
+  'libgpgme.so' 'python' 'libgcrypt' 'libsignal-protocol-c'
+  'glibc' 'libreadline.so' 'libassuan' 'libgpg-error' 'libstrophe.so'
+  )
+_gtkdepends=(
+  'libgtk-3.so' 'libxss' 'libx11' 'libpango-1.0.so'
+  'gdk-pixbuf2' 'libatk-1.0.so' 'cairo'
+  )
+makedepends=(
+  ${_clidepends[@]} ${_gtkdepends[@]} 'autoconf-archive'
+  )
+checkdepends=('cmocka')
+source=(https://github.com/profanity-im/profanity/archive/${pkgver}/${pkgbase}-${pkgver}.tar.gz)
+sha256sums=('2a271e17dfb7b556d76eb69fb6e8b9676da6f78869172e62339937c9b774b6ea')
+sha512sums=('399105dfe49e3bc711426e77d45f92b347cca6ba47059e33e0ffb3997adf7c223b2959096bbb2419891f061eb2cf63da3b90d2d2b13dcd5a0d06046e851b5c69')
+b2sums=('73d1588d94b293eae9e55274abde4ddbebc890d0e05ab266499fd768c313903e508fd009aec490f740b7bbbba765dc48c5e4056378a0cef1f0f6a71109fee226')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+
+  mkdir -p m4
+  autoreconf -fiv
+  cp -a "${srcdir}"/${pkgname}-${pkgver}{,-gtk}
+}
+
+build() {
+  echo "Building non-gtk variant..."
+  (cd ${pkgname}-${pkgver}
+    ./configure \
+      --prefix=/usr \
+      --disable-icons-and-clipboard \
+      --without-xscreensaver \
+      --enable-notifications \
+      --enable-python-plugins \
+      --enable-c-plugins \
+      --enable-plugins \
+      --enable-otr \
+      --enable-omemo \
+      --enable-pgp
+    make
+  )
+  echo "Building gtk variant..."
+  (cd ${pkgname}-${pkgver}-gtk
+    ./configure \
+      --prefix=/usr \
+      --enable-icons-and-clipboard \
+      --with-xscreensaver \
+      --enable-notifications \
+      --enable-python-plugins \
+      --enable-c-plugins \
+      --enable-plugins \
+      --enable-otr \
+      --enable-omemo \
+      --enable-pgp
+    make
+  )
+}
+
+package_profanity() {
+  depends=(
+    ${_clidepends[@]}
+  )
+  cd ${pkgbase}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+}
+
+package_profanity-gtk() {
+  pkgdesc+=' (gtk support)'
+  depends=(
+    ${_clidepends[@]} ${_gtkdepends[@]}
+  )
+  provides=('profanity')
+  conflicts=('profanity')
+  cd ${pkgbase}-${pkgver}-gtk
+  make DESTDIR="${pkgdir}" install
+}
+
+# vim: ts=2 sw=2 et:

@@ -1,0 +1,32 @@
+# Maintainer: Alexander F. Rødseth <xyproto@archlinux.org>
+# Contributor: Laurent Carlier <lordheavym@gmail.com>
+# Contributor: Brad Fanella <bradfanella@archlinux.us>
+# Contributor: SpepS <dreamspepser at yahoo dot it>
+# Contributor: Jeff Mickey <jeff@archlinux.org>
+# Contributor: tardo <tardo@nagi-fanboi.net>
+
+pkgname=chuck
+pkgver=1.4.1.0
+pkgrel=1
+pkgdesc='Concurrent, on-the-fly audio programming language'
+arch=(x86_64)
+url='https://chuck.cs.princeton.edu/'
+license=(GPL)
+depends=(jack)
+groups=(pro-audio)
+source=("https://chuck.cs.princeton.edu/release/files/$pkgname-$pkgver.tgz")
+sha256sums=('74bf99ad515e3113c55b833152936fad02a3cf006a54105ff11777c473194928')
+
+build() {
+  # "linux-alsa" and "linux-oss" are also available
+  make -C "$pkgname-$pkgver/src" linux-jack
+}
+
+package() {
+  cd $pkgname-$pkgver
+  install -d "$pkgdir/usr/share/doc/$pkgname"
+  cp -r examples "$pkgdir/usr/share/doc/$pkgname"
+  install -Dm755 "src/$pkgname" "$pkgdir/usr/bin/$pkgname"
+}
+
+# getver: chuck.cs.princeton.edu/release

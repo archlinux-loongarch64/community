@@ -1,0 +1,25 @@
+# Maintainer: Alexander F. Rødseth <xyproto@archlinux.org>
+# Contributor: Vincent Bernardoff <vb@luminar.eu.org>
+
+pkgname=clasp
+pkgver=3.3.7
+pkgrel=1
+pkgdesc='Answer set solver'
+arch=(x86_64)
+url='https://potassco.org/'
+license=(GPL3)
+makedepends=(cmake git ninja)
+conflicts=(clingo)
+source=("git+https://github.com/potassco/clasp#commit=39b7921fd7d218f5a354042b546e57f3bde2345a") # tag: v3.3.7
+b2sums=('SKIP')
+
+build() {
+  cmake -B build -D CMAKE_INSTALL_PREFIX=/usr -G Ninja -S $pkgname
+  ninja -C build
+}
+
+package() {
+  DESTDIR="$pkgdir" ninja -C build install
+}
+
+# getver: github.com/potassco/clasp/releases

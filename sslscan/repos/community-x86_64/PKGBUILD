@@ -1,0 +1,35 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Remi Gacogne <rgacogne-arch at coredump dot fr>
+# Contributor: George Rawlinson <grawlinson@archlinux.org>
+
+pkgname=sslscan
+pkgver=2.0.13
+pkgrel=1
+pkgdesc="A fast tool to scan SSL services such as HTTPS to determine supported ciphers"
+url="https://github.com/rbsec/sslscan"
+arch=('x86_64')
+license=('GPL3')
+depends=('openssl')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/$pkgver.tar.gz")
+sha512sums=('50455a4f4a999e63107e705a4bc703b94b30d4fa71b5126cdc08788eedeb02f4c7a204a385fa485f0c9d0fa368c7a48f96c492b91631fe8833b68f20d45b0fca')
+b2sums=('049791183ebf1e00d11868c0dd7b79eddcd27cbb1f915812938f46837c4b300844c26e0a0bee0a4bee4886f24f7b10e5bc77ddedc86893ae228658ab71d11bea')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  sed -e 's/CFLAGS ?=/CFLAGS +=/' \
+    -e 's/LDFLAGS ?=/LDFLAGS +=/' \
+    -e "s/^GIT_VERSION =.*/GIT_VERSION = ${pkgver}/" \
+    -i Makefile
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  make
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make DESTDIR="$pkgdir" install
+}
+
+# vim:set ts=2 sw=2 et:

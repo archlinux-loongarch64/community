@@ -1,0 +1,41 @@
+# Maintainer: Daniel M. Capella <polyzen@archlinux.org>
+# Contributor: Kaizhao Zhang <zhangkaizhao@gmail.com>
+
+pkgname=pyright
+pkgver=1.1.238
+pkgrel=1
+pkgdesc='Type checker for the Python language'
+arch=('any')
+url=https://github.com/microsoft/pyright
+license=('MIT')
+depends=('nodejs>=12')
+makedepends=('npm')
+source=("$url/archive/$pkgver/$pkgname-$pkgver.tar.gz")
+b2sums=('686e1cbfdc00184def6228681d6db99f69d48901164c8006af2a6aae20a2af0ec5198711b1942efb1b3245fc3cc2dcdd3ab93c5c8052248f4b5cb2e0aa27a00d')
+
+prepare() {
+  cd $pkgname-$pkgver
+  npm ci
+}
+
+build() {
+  cd $pkgname-$pkgver/packages/$pkgname
+  npm run build
+}
+
+package() {
+  local _npmdir=/usr/lib/node_modules/$pkgname
+  install -d "$pkgdir"/{usr/bin,$_npmdir,usr/share/doc/$pkgname}
+  ln -s $_npmdir/index.js "$pkgdir"/usr/bin/$pkgname
+  ln -s $_npmdir/langserver.index.js \
+    "$pkgdir"/usr/bin/$pkgname-langserver
+
+  cd $pkgname-$pkgver
+  cp -r {CONTRIBUTING,README}.md docs "$pkgdir"/usr/share/doc/$pkgname
+  install -Dm644 -t "$pkgdir"/usr/share/licenses/$pkgname LICENSE.txt
+
+  cd packages/$pkgname
+  cp -r dist {,langserver.}index.js "$pkgdir"/$_npmdir
+}
+
+# vim:set ts=2 sw=2 et:

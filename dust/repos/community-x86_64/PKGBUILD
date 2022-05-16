@@ -1,0 +1,45 @@
+# Maintainer: George Rawlinson <grawlinson@archlinux.org>
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+# Contributor: Knut Ahlers <knut at ahlers dot me>
+
+pkgname=dust
+pkgver=0.8.0
+pkgrel=1
+pkgdesc="A more intuitive version of du in rust"
+arch=('x86_64')
+url="https://github.com/bootandy/dust"
+license=('Apache')
+depends=('gcc-libs')
+makedepends=('rust')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
+b2sums=('6b7e86eadad3e5fbe8f753ea794e7a0900046ecf3560f5ec1c36467712de596716e75bba9be2886f47cee11852e3be53cf85ab6a00f0d6240254b2b6bd687f6d')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  cargo build --frozen --release --all-features
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  cargo test --frozen --all-features
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+
+  # binary
+  install -vDm755 -t "$pkgdir/usr/bin" "target/release/$pkgname"
+
+  # license
+  install -vDm644 -t "$pkgdir/usr/share/licenses/$pkgname" LICENSE
+
+  # documentation
+  install -vDm644 -t "$pkgdir/usr/share/doc/$pkgname" README.md
+}
+
+# vim:set ts=2 sw=2 et:

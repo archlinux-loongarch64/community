@@ -1,0 +1,24 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Contributor: gardar <aur@gardar.net>
+pkgname=python-pynetbox
+pkgver=6.6.1
+pkgrel=1
+pkgdesc="NetBox API client library"
+arch=('any')
+url="https://github.com/digitalocean/pynetbox"
+license=('Apache')
+depends=('python' 'python-requests' 'python-six')
+makedepends=('python-setuptools-scm')
+source=("https://files.pythonhosted.org/packages/source/p/pynetbox/pynetbox-${pkgver}.tar.gz")
+sha256sums=('17b5754c607cc9f6befe39e39a188cf9d8c9ffcbf636fb75c5985bb8d01a0324')
+
+build() {
+	cd "pynetbox-${pkgver}"
+	python setup.py build
+}
+
+package() {
+	cd "pynetbox-${pkgver}"
+	install -D -m644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+	python setup.py install --root="${pkgdir}" --optimize=1 --skip-build
+}

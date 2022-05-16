@@ -1,0 +1,56 @@
+# Maintainer: kpcyrd <kpcyrd[at]archlinux[dot]org>
+
+pkgbase=pacman-bintrans
+pkgname=('pacman-bintrans' 'pacman-bintrans-tools')
+pkgver=0.2.0
+pkgrel=1
+pkgdesc='Binary transparency for pacman'
+url='https://github.com/kpcyrd/pacman-bintrans'
+arch=('x86_64')
+license=('GPL3')
+depends=('rekor' 'bzip2' 'openssl' 'shared-mime-info' 'zstd')
+makedepends=('cargo')
+source=(https://github.com/kpcyrd/${pkgbase}/archive/v${pkgver}/${pkgbase}-${pkgver}.tar.gz
+        https://github.com/kpcyrd/${pkgbase}/releases/download/v${pkgver}/${pkgbase}-${pkgver}.tar.gz.asc)
+sha512sums=('5ac666658b94bcde959779a2bb2fcb952bec4b3e280d2db1e80168fefc960778d9b7d4980de9149ea54cd7826d8c33b8b9c0ea76ee7e6981f982da370a8a0566'
+            'SKIP')
+b2sums=('c4807f9c0d9de42269b393ad3b542b3160c53d30e06138936dd051efa2a8be67c941765b95354323e553f5aad09eccbe1e206cb136cbf4fa1f0d364f74e50c07'
+        'SKIP')
+
+validpgpkeys=("64B13F7117D6E07D661BBCE0FE763A64F5E54FD6")
+
+
+prepare() {
+  cd "${pkgbase}-${pkgver}"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd "${pkgbase}-${pkgver}"
+  cargo build --frozen --release --workspace
+}
+
+check() {
+  cd "${pkgbase}-${pkgver}"
+  cargo test --frozen --workspace
+}
+
+package_pacman-bintrans() {
+  cd "${pkgbase}-${pkgver}"
+  install -Dm 755 -t "${pkgdir}/usr/bin" \
+    target/release/pacman-bintrans
+
+  install -Dm 644 README.md -t "${pkgdir}/usr/share/doc/${pkgbase}"
+}
+
+package_pacman-bintrans-tools() {
+  pkgdesc='Binary transparency for pacman (sign/monitor tools)'
+  depends=('shared-mime-info' 'rekor' 'openssl' 'sqlite' 'zstd')
+
+  cd "${pkgbase}-${pkgver}"
+  install -Dm 755 -t "${pkgdir}/usr/bin" \
+    target/release/pacman-bintrans-sign \
+    target/release/pacman-bintrans-monitor
+}
+
+# vim: ts=2 sw=2 et:

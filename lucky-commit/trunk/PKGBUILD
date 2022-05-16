@@ -1,0 +1,38 @@
+# Maintainer: Orhun Parmaksız <orhun@archlinux.org>
+
+pkgname=lucky-commit
+_pkgname=lucky_commit
+pkgver=2.1.1
+pkgrel=1
+pkgdesc="Customize your git commit hashes"
+arch=('x86_64')
+url="https://github.com/not-an-aardvark/lucky-commit"
+license=('MIT')
+depends=('gcc-libs' 'ocl-icd')
+makedepends=('cargo')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
+sha512sums=('8d459e3aadbb5f1adbdb2ab03b5c8c3d666f76b2e72168c13c822c1b88ad54f100a75c7cdd1e6094b93f9080d383242932ed5bf997887f3c652e16e4e494490e')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  cargo build --release --frozen
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  cargo test --frozen --no-default-features
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm 755 "target/release/$_pkgname" -t "$pkgdir/usr/bin"
+  install -Dm 644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
+  install -Dm 644 LICENSE.md -t "$pkgdir/usr/share/licenses/$pkgname"
+}
+
+# vim: ts=2 sw=2 et:

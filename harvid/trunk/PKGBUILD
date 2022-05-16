@@ -1,0 +1,32 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: speps <speps dot aur dot archlinux dot org>
+
+pkgname=harvid
+pkgver=0.9.0
+pkgrel=1
+pkgdesc="HTTP Ardour Video Daemon"
+arch=(x86_64)
+url="https://x42.github.io/harvid/"
+license=(GPL2)
+depends=(glibc libpng)
+makedepends=(ffmpeg libjpeg-turbo xxd)
+options=(debug)
+source=($pkgname-$pkgver.tar.gz::https://github.com/x42/$pkgname/archive/v$pkgver.tar.gz)
+sha512sums=('cba47a9ad70633fbbc5a939819b7ad3c46f01b199b23c938b26092d731664bcfef05b4f03bf83433ddc63d191fef72d0cab09ae4c35efd2e1b2b37c4b2689e82')
+b2sums=('94b194c475aa402d750d2930c19402157674c5e629bf6212d0fbf0bfe9516f6272850ebca4fb9c6bb1c899418c48ac2b76ec6c04def35671df37ca0b44550e42')
+
+build() {
+  make -j1 -C $pkgname-$pkgver
+}
+
+package() {
+  depends+=(libavcodec.so libavformat.so libavutil.so libjpeg.so libswscale.so)
+
+  make PREFIX=/usr DESTDIR="$pkgdir" install -C $pkgname-$pkgver
+
+  # ffmpeg and ffprobe symlinks (for ardour)
+  ln -sv ffmpeg "$pkgdir/usr/bin/ffmpeg_$pkgname"
+  ln -sv ffprobe "$pkgdir/usr/bin/ffprobe_$pkgname"
+
+  install -vDm 644 $pkgname-$pkgver/{ChangeLog,README.md} -t "$pkgdir/usr/share/doc/$pkgname/"
+}

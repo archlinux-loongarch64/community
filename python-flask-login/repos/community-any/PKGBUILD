@@ -1,0 +1,32 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-flask-login
+pkgver=0.6.0
+pkgrel=1
+pkgdesc="User session management for Flask"
+arch=('any')
+url="https://pythonhosted.org/Flask-Login/"
+license=('MIT')
+depends=('python' 'python-flask' 'python-werkzeug')
+makedepends=('python-build' 'python-installer' 'python-wheel')
+checkdepends=('python-nose' 'python-mock' 'python-blinker' 'python-semantic-version' 'python-asgiref')
+source=("https://github.com/maxcountryman/flask-login/archive/$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('0766ef5702105bc2cea7082b2b2a9bebed282a9166757adbc91a02c4adcc291d41a3217e8b9566b6bb4778db4a1d2453edb0b7a727c9bff2673833d27b69148e')
+
+build() {
+  cd flask-login-$pkgver
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd flask-login-$pkgver
+  nosetests3
+}
+
+package() {
+  cd flask-login-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+
+  install -Dm 644 LICENSE -t "$pkgdir"/usr/share/licenses/$pkgname
+  install -Dm 644 README.md -t "$pkgdir"/usr/share/docs/$pkgname
+}

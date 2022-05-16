@@ -1,0 +1,37 @@
+# Maintainer: George Rawlinson <grawlinson@archlinux.org>
+# Contributor: Yigit Sever <yigit at yigitsever dot com>
+# Contributor: Qontinuum <qontinuum@artixlinux.org>
+# Contributor: timetoplatypus <timetoplatypus@protonmail.com>
+# Contributor: andychu <andy@oilshell.org>
+
+pkgname=oil
+pkgver=0.9.9
+pkgrel=1
+pkgdesc="A new Unix shell"
+arch=('x86_64')
+url="https://www.oilshell.org"
+license=('Apache')
+depends=('readline')
+makedepends=('bash')
+replaces=('osh')
+install=oil.install
+options=('!lto' '!strip')
+source=("$url/download/$pkgname-$pkgver.tar.xz")
+sha512sums=('86e83e0697252682c2f73a731b698e4ac850c93f5a867773609f3d67be41cae54f3d0bd2da215084e597f21385222f1693d0c0478c17f58648bf9027119eeb31')
+b2sums=('f2a9cd7b001154d567ebcb3cd2918e25f625d2a4e6b068bac889cc2c8ccd330106604026a799d91c9f86014dcbd31a169cdd0e72a6cf1358cba3dc09a12990ce')
+
+build() {
+	cd "$pkgname-$pkgver"
+
+	./configure \
+    --prefix=/usr \
+    --with-readline
+
+	make
+}
+
+package() {
+	cd "$pkgname-$pkgver"
+
+	make DESTDIR="$pkgdir" install
+}

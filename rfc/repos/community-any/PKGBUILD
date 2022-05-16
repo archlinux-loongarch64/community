@@ -1,0 +1,43 @@
+# Maintainer: Sergej Pupykin <pupykin.s+arch@gmail.com>
+# Contributor: Peter Simons <simons@cryp.to>
+# Contributor: Sergej Pupykin <pupykin.s+arch@gmail.com>
+
+pkgname=rfc
+pkgver=20210629
+pkgrel=1
+pkgdesc="RFCs from rfc-editor.org"
+arch=('any')
+url="https://www.rfc-editor.org/"
+license=("custom:as-is")
+options=('docs')
+source=(https://sources.archlinux.org/other/community/rfc/rfc-index-$pkgver.txt
+        https://sources.archlinux.org/other/community/rfc/RFC-all-$pkgver.tar.zst
+        license)
+sha256sums=('dc4af8ff74aba7d02bef921bcd59bce3520ba39237a36d8bfd27e13b2a6cda8a'
+            'e1f7c2dd359f8b50f5ed1648e1b9bd238db0386d989f66e8f64301c57d590889'
+            'ac9cd91c2e15b0840b6ecd4f7d30d6d12c49e18b4f9eb383a0ce05a64901624e')
+
+package() {
+    cd "$srcdir"
+
+    mkdir -p "$pkgdir/usr/share/doc/rfc"
+    cp rfc-index-$pkgver.txt "$pkgdir/usr/share/doc/rfc/rfc-index.txt"
+    rm -f rfc-index-$pkgver.txt
+
+    tar xf rfc1305.tar
+    rm -f rfc1305.tar
+    for n in ntpv3*; do
+      mv "$n" "rfc1305-$n"
+    done
+
+    for fmt in txt ps pdf; do
+      mkdir -p "$pkgdir/usr/share/doc/rfc/${fmt}"
+      mv *.${fmt} "$pkgdir/usr/share/doc/rfc/${fmt}/"
+    done
+
+    cd "$pkgdir/usr/share/doc/rfc"
+    find . -type f -exec chmod 444 {} \;
+    find . -type d -exec chmod 555 {} \;
+    chown -R root:root .
+    install -D -m0644 "$srcdir"/license "$pkgdir"/usr/share/licenses/$pkgname/license
+}

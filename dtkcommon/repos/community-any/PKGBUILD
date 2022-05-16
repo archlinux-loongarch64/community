@@ -1,0 +1,29 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=dtkcommon
+pkgver=5.5.21
+pkgrel=1
+pkgdesc='DTK common files'
+arch=('any')
+url="https://github.com/linuxdeepin/dtkcommon"
+license=('LGPL3')
+depends=('dconf')
+makedepends=('qt5-tools')
+source=("https://github.com/linuxdeepin/dtkcommon/archive/$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('5413196c0ceeb7510d4d26394c8e6796c8d173e3664eb2e7bb53fb9950fc384caa08e9452f5e71bf4cee87cb7f793e9a5e638ec30333cbbb7fdaa4f2cfc46d12')
+
+prepare() {
+  cd dtkcommon-$pkgver
+  sed -i 's|qt5/mkspecs|qt/mkspecs|;s|/etc/dbus-1|/usr/share/dbus-1|' dtkcommon.pro
+}
+
+build() {
+  cd dtkcommon-$pkgver
+  qmake-qt5 PREFIX=/usr VERSION=$pkgver LIB_INSTALL_DIR=/usr/lib
+  make
+}
+
+package() {
+  cd dtkcommon-$pkgver
+  make INSTALL_ROOT="$pkgdir" install
+}

@@ -1,0 +1,33 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+pkgname=qxgedit
+pkgver=0.9.6
+pkgrel=1
+pkgdesc="GUI for editing MIDI System Exclusive files for XG devices (eg. Yamaha DB50XG)"
+arch=(x86_64)
+url="https://qxgedit.sourceforge.io/"
+license=(GPL2)
+groups=(pro-audio)
+depends=(gcc-libs glibc hicolor-icon-theme qt6-base)
+makedepends=(alsa-lib cmake qt6-tools)
+options=(debug)
+source=(https://downloads.sourceforge.net/$pkgname/$pkgname-$pkgver.tar.gz)
+sha512sums=('31c7e03f89efb9cf12e0c76183423aca25e399e34f52125dbaab6a15b161ad4bde43ce863bdcadc872c69310e0204f0a4e9473ba17d28fee01b023cf5644fc3a')
+b2sums=('c2730431b2d2425866dbdc1a0093cebb98be2bad43794b4f07be9fbfddbee80f089c4faf6fda21e9dbbc244755f8b382bc927f9fd44a3c248b78d1506cbc27c4')
+
+build() {
+  cmake -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=None \
+        -DCONFIG_QT6=ON \
+        -Wno-dev \
+        -B build \
+        -S $pkgname-$pkgver
+  make VERBOSE=1 -C build
+}
+
+package() {
+  depends+=(libasound.so)
+
+  make VERBOSE=1 DESTDIR="$pkgdir" install -C build
+  install -vDm 644 $pkgname-$pkgver/{ChangeLog,README} -t "$pkgdir/usr/share/doc/$pkgname/"
+}

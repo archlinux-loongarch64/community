@@ -1,0 +1,33 @@
+# Maintainer: BlackEagle <ike.devolder@gmail.com>>
+
+pkgname=kodi-addon-game-libretro-mgba
+pkgver=0.10.0.34
+_codename=Matrix
+pkgrel=4
+pkgdesc="Libretro wrapper for Kodi's Game API"
+arch=('x86_64')
+url='https://github.com/kodi-game/game.libretro.mgba'
+license=('GPL')
+groups=('kodi-addons' 'kodi-addons-game')
+makedepends=('cmake' 'kodi-dev' 'kodi-addon-game-libretro' 'libretro-mgba')
+options=(!lto debug)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/kodi-game/game.libretro.mgba/archive/$pkgver-$_codename.tar.gz")
+sha512sums=('18dcb3dbb03bc1cfc28d4591c361ce9c3f77704ffe89a5f0ae7952a7b39e99b19716285735528c8dcbc9788256a50ae4b1032dcceb6fe796b6e8e9e8c6b8be74')
+
+build() {
+    cd "game.libretro.mgba-$pkgver-$_codename"
+    cmake \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=1 \
+        -DUSE_LTO=1 \
+        .
+    make
+}
+
+package() {
+    depends=('kodi-addon-game-libretro' 'libretro-mgba')
+    cd "game.libretro.mgba-$pkgver-$_codename"
+	make DESTDIR="$pkgdir/" install
+}
+

@@ -1,0 +1,31 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Daniel Wallace <danielwallace at gtmanfred dot com>
+# Contributor: Thomas S Hatch <thatch45@gmail.com>
+
+pkgname=python-mockito
+pkgver=1.3.0
+pkgrel=1
+pkgdesc='Spying framework'
+arch=('any')
+url='https://github.com/kaste/mockito-python'
+license=('MIT')
+depends=('python')
+makedepends=('python-pytest' 'python-setuptools')
+checkdepends=('python-numpy')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/kaste/mockito-python/archive/$pkgver.tar.gz")
+sha512sums=('5a06e1a2912940458873dfb6a9628c02dc2ef0c6a90c2913ce120503fa50b83be863445fc8a41de664c48a8b5e8cab9abeb53be36888faf6c053f629aab84750')
+
+build() {
+  cd mockito-python-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd mockito-python-$pkgver
+  pytest --ignore=build
+}
+
+package() {
+  cd mockito-python-$pkgver
+  python setup.py install --root="$pkgdir" -O1
+}

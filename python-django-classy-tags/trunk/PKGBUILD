@@ -1,0 +1,34 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+_name=django-classy-tags
+pkgname=python-django-classy-tags
+pkgver=3.0.1
+pkgrel=1
+pkgdesc="Class based template tags for django"
+arch=(any)
+url="https://github.com/django-cms/django-classy-tags"
+license=(BSD)
+depends=(python-django python-six)
+makedepends=(python-setuptools)
+checkdepends=(python-coverage python-pytest)
+source=("https://files.pythonhosted.org/packages/source/${_name::1}/${_name}/${_name}-${pkgver}.tar.gz")
+sha512sums=('3d207cb398c44d058fbcc9d30dddf7cef22938b0731409fafea8776e7c5b7e59e3c8740e119a8fb6e46e5f7d2d64dd54afbdf57755c2f4c03457c6b47a0890aa')
+b2sums=('67fed2308a6b50bfd0cecdf60dca7680f69cc7cfe201eceed32500b7964f3a537c11e5e676d9dbfe11535f8bde7d06bead2da9f0ef2a6e3a04783619955d233b')
+
+build() {
+  cd "${_name}-${pkgver}"
+  python setup.py build
+}
+
+check() {
+  cd "${_name}-${pkgver}"
+  export PYTHONPATH="build:${PYTHONPATH}"
+  python setup.py test
+}
+
+package() {
+  cd "${_name}-${pkgver}"
+  python setup.py install --optimize=1 --root="${pkgdir}"
+  install -vDm 644 README.rst -t "${pkgdir}/usr/share/doc/${pkgname}"
+  install -vDm 644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
