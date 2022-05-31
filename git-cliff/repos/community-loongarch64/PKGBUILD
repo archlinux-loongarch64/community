@@ -1,0 +1,42 @@
+# Maintainer: Orhun Parmaksız <orhun@archlinux.org>
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+
+pkgname=git-cliff
+pkgver=0.6.1
+pkgrel=1
+pkgdesc="A highly customizable changelog generator"
+arch=('x86_64')
+url="https://github.com/orhun/git-cliff"
+license=('GPL3')
+depends=('gcc-libs' 'zlib' 'libgit2' 'libgit2.so')
+makedepends=('cargo')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
+sha512sums=('35bad914979e2241d1e9b6a0784af72712a071e65a1a6bbe0c53d5dfbc119252bf53a285f671d4cc139d6b5ddc4ec02a1775d73d881cdaf58c4ae759ad21f558')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  mkdir completions/
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  cargo build --release --frozen
+  OUT_DIR=completions/ "./target/release/$pkgname-completions"
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  cargo test --frozen -- --skip "git_log"
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm 755 "target/release/$pkgname" -t "$pkgdir/usr/bin"
+  install -Dm 644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
+  install -Dm 644 "completions/$pkgname.bash" "$pkgdir/usr/share/bash-completion/completions/$pkgname"
+  install -Dm 644 "completions/$pkgname.fish" -t "$pkgdir/usr/share/fish/vendor_completions.d"
+  install -Dm 644 "completions/_$pkgname" -t "$pkgdir/usr/share/zsh/site-functions"
+}
+
+# vim: ts=2 sw=2 et:

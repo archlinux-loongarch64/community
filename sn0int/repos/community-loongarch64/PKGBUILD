@@ -1,0 +1,58 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Santiago Torres-Arias <santiago[at]archlinux[dot]org>
+# Maintainer: kpcyrd <kpcyrd[at]archlinux[dot]org>
+
+pkgname=sn0int
+pkgver=0.24.2
+pkgrel=1
+pkgdesc='Semi-automatic OSINT framework and package manager'
+url='https://github.com/kpcyrd/sn0int'
+arch=('x86_64')
+license=('GPL3')
+depends=('libcap' 'lua52' 'sqlite' 'libseccomp.so' 'libsodium' 'geoip2-database' 'publicsuffix-list')
+makedepends=('cargo' 'python-sphinx')
+install=sn0int.install
+options=(!lto)
+source=(https://github.com/kpcyrd/${pkgname}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz
+        https://github.com/kpcyrd/${pkgname}/releases/download/v${pkgver}/${pkgname}-${pkgver}.tar.gz.asc)
+sha512sums=('d932a55cbacb5da45d62f08df81179d49d1c974cd213fb629aa080cd9c8ca67c42ea8db63cfdaea62b49eaa1980711533844f1f744a8cd6177e4df1f19b118c4'
+            'SKIP')
+b2sums=('af11dc3b2b774b4929381d34c0458df05f61c3d1325027ada522add20a8ed75f2ed5784ab6444ebecd398206a860315b5831a7ff2bc604991e43087c56fe6a46'
+        'SKIP')
+
+validpgpkeys=("64B13F7117D6E07D661BBCE0FE763A64F5E54FD6")
+
+
+prepare() {
+  cd "${pkgname}-${pkgver}"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  cargo build --frozen --release
+  make -C docs man
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  cargo test --frozen
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  install -Dm 755 target/release/${pkgname} "${pkgdir}/usr/bin/${pkgname}"
+
+  install -d "${pkgdir}/usr/share/bash-completion/completions" \
+             "${pkgdir}/usr/share/zsh/site-functions" \
+             "${pkgdir}/usr/share/fish/vendor_completions.d"
+  "${pkgdir}/usr/bin/sn0int" completions bash > "${pkgdir}/usr/share/bash-completion/completions/sn0int"
+  "${pkgdir}/usr/bin/sn0int" completions zsh > "${pkgdir}/usr/share/zsh/site-functions/_sn0int"
+  "${pkgdir}/usr/bin/sn0int" completions fish > "${pkgdir}/usr/share/fish/vendor_completions.d/sn0int.fish"
+
+  install -Dm 644 docs/_build/man/sn0int.1 -t "${pkgdir}/usr/share/man/man1"
+  install -Dm 644 README.md -t "${pkgdir}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:

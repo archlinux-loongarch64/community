@@ -1,0 +1,60 @@
+# Maintainer: Konstantin Gizdov <arch at kge dot pw>
+# Co-Maintainer: Baptiste Jonglez <baptiste--aur at jonglez dot org>
+# Contributor: mortzu
+
+pkgname=ipv6calc
+pkgver=4.0.1
+pkgrel=1
+pkgdesc='Small utility to manipulate, convert and calculate (more than) IPv6 addresses'
+url='https://www.deepspace6.net/projects/ipv6calc.html'
+license=('GPL2')
+arch=('x86_64')
+# See https://www.deepspace6.net/projects/ipv6calc.html#idm140634407144416
+makedepends=('geoip')
+optdepends=('geoip: for country GeoIP support'
+            'geoip-database-extra: for city-level GeoIP support'
+            'perl: to run the provided scripts')
+checkdepends=('perl-digest-sha1' 'perl-uri' 'perl-html-parser' 'perl-proc-processtable')
+source=("ftp://ftp.bieringer.de/pub/linux/IPv6/ipv6calc/${pkgname}-${pkgver}.tar.gz"{,.asc}
+        "ftp://ftp.bieringer.de/pub/linux/IPv6/ipv6calc/CODE-GPG-KEY-bieringer.de-2013"
+        'anti-dos_test.patch')
+sha256sums=('0de7dbe66c0e3602becc18bb8f69a278a02eeaf5d58779cd1c0e0069eb80a7e6'
+            'SKIP'
+            '59a84dfb8bef98fc801f374bf3f1c19adb5d8cda1a2233eb3366a71c6b1fd154'
+            '032636601c1b792e95e2da3de048fac5040fb06e5f7235021a7ee2f5012fdde9')
+validpgpkeys=('AAB38CB797C750C778C608C6DDEB141DF7380F61') # Peter Bieringer (Code Signing Key 2013) <code@bieringer.de>
+
+prepare() {
+  cd "${pkgname}-${pkgver}"
+  patch -Np1 -i "${srcdir}/anti-dos_test.patch"
+
+  autoconf
+}
+
+build() {
+  cd "${pkgname}-${pkgver}"
+
+  ./configure \
+    --prefix="/usr" \
+    --libdir="/usr/lib" \
+    --datarootdir="/usr/share" \
+    --enable-shared \
+    --enable-bundled-md5 \
+    --enable-geoip \
+    --with-geoip-dynamic=yes
+  make
+}
+
+check() {
+  cd "${pkgname}-${pkgver}"
+
+  make test-minimal
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+
+  make DESTDIR="$pkgdir" install
+}
+
+# vim:set ts=2 sw=2 et:

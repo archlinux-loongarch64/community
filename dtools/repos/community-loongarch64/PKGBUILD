@@ -1,0 +1,47 @@
+# Maintainer: Dan Printzell <wild@archlinux.org>
+# Maintainer: Filipe Laíns (FFY00) <lains@archlinux.org>
+# Contributor: Mihails Strasunse <public@dicebot.lv>
+
+pkgname=dtools
+pkgver=2.099.1
+pkgrel=1
+pkgdesc='Ancilliary tools for the D programming language'
+license=('Boost')
+groups=('dlang')
+arch=('x86_64')
+url='https://www.dlang.org'
+makedepends=('dmd' 'libphobos')
+provides=('ddemangle' 'dustmite' 'rdmd')
+conflicts=('ddemangle' 'dustmite' 'rdmd')
+depends=('curl')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/dlang/tools/archive/v$pkgver.tar.gz")
+sha512sums=('68cde8853bac2f3c92a2fbbe3f658e29b475bea2aeb5f5ffb96f2b3e85aca693b1d14c8fa248bad882461e55957c1de5cba9ac7a02b3a28be070e4869b6a4171')
+
+build() {
+    DMD=dmd
+
+    # Add $LDFLAGS to the compilation, and remove -flto
+    _linkflags=$(echo -ne $LDFLAGS | cut -d\" -f2 | tail -c+4 | sed -e "s/,/ -L=/g" -e "s/-flto=auto//")
+
+    cd tools-$pkgver
+    # rdmd is used to build others
+    $DMD -od. -ofdtools-rdmd -L--build-id $_linkflags rdmd.d
+
+    for tool in DustMite/dustmite ddemangle catdoc detab tolf dget; do
+        ./dtools-rdmd --compiler=$DMD --build-only -od. -ofdtools-`basename $tool` $_linkflags $tool.d
+    done
+}
+
+package() {
+    cd tools-$pkgver
+
+    mkdir -p "$pkgdir/usr/bin"
+    for tool in rdmd ddemangle catdoc detab tolf dget dustmite; do
+        install -m755 -t "$pkgdir/usr/bin" $pkgname-$tool
+    done
+
+    cd "$pkgdir"
+    ln -s dtools-rdmd usr/bin/rdmd
+    ln -s dtools-dustmite usr/bin/dustmite
+    ln -s dtools-ddemangle usr/bin/ddemangle
+}

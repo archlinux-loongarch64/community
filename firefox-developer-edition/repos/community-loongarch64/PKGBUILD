@@ -1,0 +1,218 @@
+# Maintainer: Andrew Crerar <crerar@archlinux.org>
+# Contributor: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+
+pkgname=firefox-developer-edition
+pkgver=100.0b6
+pkgrel=1
+pkgdesc="Developer Edition of the popular Firefox web browser"
+arch=('x86_64')
+license=('MPL' 'GPL' 'LGPL')
+url="https://www.mozilla.org/firefox/channel/#developer"
+depends=('gtk3' 'libxt' 'mime-types' 'dbus-glib' 'ffmpeg' 'ttf-font' 'libpulse' 'nss')
+makedepends=('unzip' 'zip' 'diffutils' 'python-setuptools' 'yasm' 'mesa' 'imake' 'inetutils'
+             'xorg-server-xvfb' 'autoconf2.13' 'rust' 'clang' 'llvm' 'jack' 'nodejs'
+             'python-psutil' 'cbindgen' 'nasm' 'lld' 'python-zstandard' 'dump_syms'
+             'wasi-compiler-rt' 'wasi-libc' 'wasi-libc++' 'wasi-libc++abi')
+optdepends=('networkmanager: Location detection via available WiFi networks'
+            'libnotify: Notification integration'
+            'pulseaudio: Audio support'
+            'speech-dispatcher: Text-to-Speech'
+            'hunspell-en_US: Spell checking, American English'
+            'xdg-desktop-portal: Screensharing with Wayland')
+replaces=('firefox-developer')
+options=(!emptydirs !makeflags !strip !lto !debug)
+source=(https://archive.mozilla.org/pub/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.xz{,.asc}
+        firefox-install-dir.patch
+        "$pkgname".desktop
+        identity-icons-brand.svg
+        psutil.patch)
+sha512sums=('e5a816beefd3364925911245e07cebf109feb4431bd11f7dfbc3d3cd1344922db5b777846685da187d96757e0959deb883d8eea3363134bc8c79eb6ceff1ac91'
+            'SKIP'
+            'b66dbe7f262d036e5a5b895ab5b0dbb03313bca18b0823c001ef2dbaeb1a33169b57db0cf4dfd268499f28913845119902b5d62e8a6a9cc4820eb0ee2f322a1e'
+            '2ff0cb8e2eb94cee306b488adf6d7f4debbaff6155be3ed3eeee814cdb356e2e60fe38cc29d6c8d10079937fd2c930cfddf283977cf645395d31eaf76c7f0ac2'
+            'b579b73176c72a5ecf36e3f63bba08fdb8041ae99d54e5cab906660fed6a9cf2311f7ca1ec1649e451cc6d5a4b1e6060b974b1d7befe9c8df3c5a89c50383c17'
+            'd445a6964958de41687eb0f33addee1f382b3e5c8cbb9d568ccaf11e230ef11baa08f166c79750de24958c0f38e4e934c7a04e676b96053cdbdb917653d6a5cd')
+validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
+
+# Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
+# Note: These are for Arch Linux use ONLY. For your own distribution, please
+# get your own set of keys. Feel free to contact foutrelis@archlinux.org for
+# more information.
+_google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
+
+# Mozilla API keys (see https://location.services.mozilla.com/api)
+# Note: These are for Arch Linux use ONLY. For your own distribution, please
+# get your own set of keys. Feel free to contact heftig@archlinux.org for
+# more information.
+_mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
+
+prepare() {
+  mkdir mozbuild
+  cd firefox-${pkgver%b*}
+  patch -Np1 -i ../firefox-install-dir.patch
+  patch -Np1 -i ../psutil.patch
+
+  echo -n "$_google_api_key" > google-api-key
+  echo -n "$_mozilla_api_key" > mozilla-api-key
+
+  cat > ../mozconfig << END
+ac_add_options --enable-application=browser
+mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
+
+ac_add_options --prefix=/usr
+ac_add_options --enable-release
+ac_add_options --enable-hardening
+ac_add_options --enable-optimize
+ac_add_options --enable-rust-simd
+ac_add_options --enable-linker=lld
+ac_add_options --disable-elf-hack
+ac_add_options --disable-bootstrap
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+
+# Branding
+ac_add_options --with-branding=browser/branding/aurora
+ac_add_options --enable-update-channel=aurora
+ac_add_options --with-distribution-id=org.archlinux
+ac_add_options --with-unsigned-addon-scopes=app,system
+ac_add_options --allow-addon-sideload
+export MOZILLA_OFFICIAL=1
+export MOZ_APP_REMOTINGNAME=${pkgname//-/}
+export MOZ_REQUIRE_SIGNING=
+
+# Keys
+ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/google-api-key
+ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/google-api-key
+ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
+
+# System libraries
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
+
+# Features
+ac_add_options --enable-alsa
+ac_add_options --enable-jack
+ac_add_options --enable-crashreporter
+ac_add_options --disable-updater
+ac_add_options --disable-tests
+END
+}
+
+build() {
+  cd firefox-${pkgver%b*}
+
+  export MOZ_NOSPAM=1
+  export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
+  export MOZ_ENABLE_FULL_SYMBOLS=1
+  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE="system"
+
+  # LTO needs more open files
+  ulimit -n 4096
+
+  # Do 3-tier PGO
+  echo "Building instrumented browser..."
+  cat >.mozconfig ../mozconfig - <<END
+ac_add_options --enable-profile-generate=cross
+END
+  ./mach build
+
+  echo "Profiling instrumented browser..."
+  ./mach package
+  LLVM_PROFDATA=llvm-profdata \
+    JARLOG_FILE="$PWD/jarlog" \
+    xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
+    ./mach python build/pgo/profileserver.py
+
+  stat -c "Profile data found (%s bytes)" merged.profdata
+  test -s merged.profdata
+
+  stat -c "Jar log found (%s bytes)" jarlog
+  test -s jarlog
+
+  echo "Removing instrumented browser..."
+  ./mach clobber
+
+  echo "Building optimized browser..."
+  cat >.mozconfig ../mozconfig - <<END
+ac_add_options --enable-lto=cross
+ac_add_options --enable-profile-use=cross
+ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
+ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
+END
+  ./mach build
+
+  echo "Building symbol archive..."
+  ./mach buildsymbols
+}
+
+package() {
+  cd firefox-${pkgver%b*}
+  DESTDIR="$pkgdir" ./mach install
+
+  local vendorjs="$pkgdir/usr/lib/$pkgname/browser/defaults/preferences/vendor.js"
+  install -Dvm644 /dev/stdin "$vendorjs" << END
+// Use LANG environment variable to choose locale.
+pref("intl.locale.requested", "");
+
+// Use system-provided dictionaries.
+pref("spellchecker.dictionary_path", "/usr/share/hunspell");
+
+// Disable default browser checking.
+pref("browser.shell.checkDefaultBrowser", false);
+
+// Don't disable our bundled extensions in the application directory.
+pref("extensions.autoDisableScopes", 11);
+END
+
+  local distini="$pkgdir/usr/lib/$pkgname/distribution/distribution.ini"
+  install -Dvm644 /dev/stdin "$distini" << END
+[Global]
+id=archlinux
+version=1.0
+about=Mozilla Firefox Developer Edition for Arch Linux
+
+[Preferences]
+app.distributor=archlinux
+app.distributor.channel=$pkgname
+app.partner.archlinux=archlinux
+END
+
+  local i theme=aurora
+  for i in 16 22 24 32 48 64 128 256; do
+    install -Dvm644 browser/branding/$theme/default$i.png \
+      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$pkgname.png"
+  done
+  install -Dvm644 browser/branding/$theme/content/about-logo.png \
+    "$pkgdir/usr/share/icons/hicolor/192x192/apps/$pkgname.png"
+  install -Dvm644 browser/branding/$theme/content/about-logo@2x.png \
+    "$pkgdir/usr/share/icons/hicolor/384x384/apps/$pkgname.png"
+  install -Dvm644 browser/branding/$theme/content/about-logo.svg \
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
+  install -Dvm644 ../identity-icons-brand.svg \
+    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$pkgname-symbolic.svg"
+
+  install -Dvm644 ../$pkgname.desktop \
+    "$pkgdir/usr/share/applications/$pkgname.desktop"
+
+  # Install a wrapper to avoid confusion about binary path
+  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/$pkgname" << END
+#!/bin/sh
+exec /usr/lib/$pkgname/firefox "\$@"
+END
+
+  # Replace duplicate binary with wrapper
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
+  ln -srfv "$pkgdir/usr/bin/$pkgname" "$pkgdir/usr/lib/$pkgname/firefox-bin"
+
+  # Use system certificates
+  local nssckbi="$pkgdir/usr/lib/$pkgname/libnssckbi.so"
+  if [[ -e $nssckbi ]]; then
+    ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
+  fi
+
+  export SOCORRO_SYMBOL_UPLOAD_TOKEN_FILE="$startdir/.crash-stats-api.token"
+  if [[ -f $SOCORRO_SYMBOL_UPLOAD_TOKEN_FILE ]]; then
+    make -C obj uploadsymbols
+  else
+    cp -fvt "$startdir" obj/dist/*crashreporter-symbols-full.tar.zst
+  fi
+}

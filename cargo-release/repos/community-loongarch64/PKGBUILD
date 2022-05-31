@@ -1,0 +1,32 @@
+# Maintainer: kpcyrd <kpcyrd[at]archlinux[dot]org>
+
+pkgname=cargo-release
+pkgver=0.20.5
+pkgrel=1
+pkgdesc='Cargo subcommand "release": everything about releasing a rust crate'
+url='https://github.com/sunng87/cargo-release'
+arch=('x86_64')
+license=('MIT' 'APACHE')
+depends=('gcc-libs' 'libgit2' 'libssh' 'openssl' 'zlib')
+makedepends=('cargo' 'pkg-config')
+source=(https://github.com/sunng87/${pkgname}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz)
+b2sums=('ec066a870c80d10c9d5f4480fb44a2b0dd1f73804fd048788e4426d74a7f9911834e1f124906e7a1659546360d430352e4185a3b2fa648fab7c1941d8fe6bbb5')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+  sed -i 's/"vendored-libgit2"//' Cargo.toml
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  LIBSSH2_SYS_USE_PKG_CONFIG=1 cargo build --frozen --release
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  install -Dm 755 target/release/${pkgname} "${pkgdir}/usr/bin/${pkgname}"
+  install -Dm 644 LICENSE-MIT -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:

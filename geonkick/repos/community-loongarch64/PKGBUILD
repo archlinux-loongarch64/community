@@ -1,0 +1,43 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+pkgname=geonkick
+pkgver=2.9.0
+pkgrel=1
+pkgdesc="A free software percussion synthesizer"
+arch=(x86_64)
+url="https://github.com/free-sm/geonkick"
+license=(GPL3)
+groups=(pro-audio)
+depends=(cairo gcc-libs glibc hicolor-icon-theme libx11)
+makedepends=(cmake jack libsndfile lv2 rapidjson)
+checkdepends=(lv2lint)
+optdepends=(
+  'lv2-host: for LV2 plugin'
+  'jack: for standalone application'
+)
+source=("$pkgname-v$pkgver.tar.gz::https://github.com/free-sm/${pkgname}/archive/refs/tags/v${pkgver}.tar.gz")
+sha512sums=('5f4ea7e4363092ac770b925d7e969a368fcaddffe36fddbcda1c1c486b387a366192e02706d431504bae3dada95551accfbece0059ff748f7c14d4479bb8358d')
+b2sums=('db6e615cbab5d712ffa31a944a6ab06e1dd676498256cd73357e0a9bafed2892560386b792db725407b0d13521bda7e9e373700384eadc42f3a5bccf64bc9ace')
+
+build() {
+  cmake -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=None \
+        -Wno-dev \
+        -B build \
+        -S "$pkgname-$pkgver"
+  make VERBOSE=1 -C build
+}
+
+check() {
+  cp -av build/plugin/lv2/*.so "$pkgname-$pkgver/plugin/lv2/${pkgname}.lv2/"
+  lv2lint -Mpack -I "$pkgname-$pkgver/plugin/lv2/${pkgname}.lv2/" "http://geontime.com/geonkick" || echo "Known to fail: https://github.com/free-sm/geonkick/issues/164"
+  rm -v "$pkgname-$pkgver/plugin/lv2/${pkgname}.lv2/"*.so
+}
+
+package() {
+  depends+=(libsndfile.so)
+
+  make VERBOSE=1 DESTDIR="$pkgdir/" install -C build
+  install -vDm 644 "$pkgname-$pkgver/data/${pkgname}.desktop" -t "${pkgdir}/usr/share/applications"
+  install -vDm 644 "$pkgname-$pkgver/README.md" -t "${pkgdir}/usr/share/doc/${pkgname}"
+}

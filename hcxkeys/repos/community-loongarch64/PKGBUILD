@@ -1,0 +1,32 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+
+pkgname=hcxkeys
+pkgver=6.2.0
+pkgrel=1
+pkgdesc='Set of tools to generate plainmasterkeys (rainbowtables) and hashes for hashcat and John the Ripper'
+url='https://github.com/ZerBea/hcxkeys'
+arch=('x86_64')
+license=('MIT')
+depends=('openssl' 'opencl-driver' 'opencl-icd-loader')
+makedepends=('opencl-headers')
+source=(https://github.com/ZerBea/hcxkeys/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz
+        https://github.com/ZerBea/hcxkeys/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.gz.asc)
+sha512sums=('50a29aa145a4b0995c394915e92236a436b82885f28bbe30a18f5821e5267e5be6eb21defe6e9daaf50be122ffef2f5fa12dfcb08de03bf58b1d824c344f729a'
+            'SKIP')
+b2sums=('f372bf4ce6e46075272d041d18f9d2f393cb439986127f09ec5334936e19541a3ece5d1e70ce48a6f8a04718b66f654962edd77466441b1f7ede879e5e475cde'
+        'SKIP')
+validpgpkeys=('5920CE1C567948AFD2C0A9B7375516A45DB88630') # ZeroBeat <ZeroBeat@gmx.de>
+
+build() {
+  cd ${pkgname}-${pkgver}
+  make PRODUCTION=1
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" PREFIX=/usr PRODUCTION=1 install
+  install -Dm 644 README.md -t "${pkgdir}/usr/share/doc/${pkgname}"
+  install -Dm 644 license.txt -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:

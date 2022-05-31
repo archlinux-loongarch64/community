@@ -1,0 +1,42 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=deepin-pw-check
+pkgver=5.1.6
+pkgrel=1
+pkgdesc='Tool to verify the validity of the password'
+arch=('x86_64')
+url="https://github.com/linuxdeepin/deepin-pw-check"
+license=('GPL3')
+depends=('cracklib' 'gtk3' 'iniparser')
+makedepends=('deepin-gettext-tools' 'git' 'go' 'golang-deepin-lib' 'golang-github-linuxdeepin-go-dbus-factory')
+groups=('deepin')
+source=("https://github.com/linuxdeepin/deepin-pw-check/archive/$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('72cd8caab6c049a2cff22b59a6dd80cf1549590b61fd11ffd070cd122aa7e249d66c10bcd9f40e19696c64ec1c7dc359a1fc4818849c6de72cba6051dfcd36ed')
+
+export GO111MODULE=off
+
+prepare() {
+  export GOPATH="$srcdir/build:/usr/share/gocode"
+  go get github.com/godbus/dbus github.com/fsnotify/fsnotify gopkg.in/yaml.v3
+
+  cd deepin-pw-check-$pkgver
+  sed -i 's|iniparser/||' */*.c
+  sed -i 's|gcc |gcc ${CFLAGS} ${LDFLAGS} |' Makefile
+}
+
+build() {
+  export CGO_CPPFLAGS="${CPPFLAGS}"
+  export CGO_CFLAGS="${CFLAGS}"
+  export CGO_CXXFLAGS="${CXXFLAGS}"
+  export CGO_LDFLAGS="${LDFLAGS}"
+  export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
+
+  cd deepin-pw-check-$pkgver
+  # broken Makefile
+  make -j1
+}
+
+package() {
+  cd deepin-pw-check-$pkgver
+  make DESTDIR="$pkgdir" PKG_FILE_DIR=/usr/lib/pkgconfig PAM_MODULE_DIR=/usr/lib/security install
+}

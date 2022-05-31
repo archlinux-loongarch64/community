@@ -1,0 +1,59 @@
+# Maintainer: Orhun Parmaksız <orhun@archlinux.org>
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+
+pkgbase=himalaya
+pkgname=('himalaya' 'vim-himalaya')
+pkgver=0.5.10
+pkgrel=1
+pkgdesc="A CLI email client"
+arch=('x86_64')
+url="https://github.com/soywod/himalaya"
+license=('BSD')
+depends=('gcc-libs' 'notmuch' 'openssl')
+makedepends=('cargo')
+source=("$pkgbase-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
+sha512sums=('0180ad71499109be65554a8176bffbad5c63f092b88b80bb8e82426dbc397c23f271ef4cc05fa42338a4671aca50b5ba9fd8eef7e78eef04533e7a35ee925550')
+
+prepare() {
+  cd "$pkgbase-$pkgver"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+  mkdir -p completions
+}
+
+build() {
+  cd "$pkgbase-$pkgver"
+  cargo build --frozen --release --features notmuch-backend
+  local _completion="target/release/$pkgbase completion"
+  $_completion bash > "completions/$pkgbase"
+  $_completion fish > "completions/$pkgbase.fish"
+  $_completion zsh  > "completions/_$pkgbase"
+}
+
+check() {
+  cd "$pkgbase-$pkgver"
+  cargo test --frozen --features notmuch-backend -- --skip "test_imap_backend"
+}
+
+package_himalaya() {
+  cd "$pkgbase-$pkgver"
+  install -Dm 755 "target/release/$pkgname" -t "$pkgdir/usr/bin"
+  install -Dm 664 "completions/$pkgname" -t "$pkgdir/usr/share/bash-completion/completions/"
+  install -Dm 664 "completions/$pkgname.fish" -t "$pkgdir/usr/share/fish/vendor_completions.d/"
+  install -Dm 664 "completions/_$pkgname" -t "$pkgdir/usr/share/zsh/site-functions/"
+  install -Dm 644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
+  install -Dm 644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+  install -Dm 644 "assets/$pkgname.desktop" -t "$pkgdir/usr/share/applications"
+}
+
+package_vim-himalaya() {
+  depends=('vim-plugin-runtime' 'himalaya')
+  pkgdesc+=' - Vim UI plugin'
+
+  cd "$pkgbase-$pkgver/vim/"
+  find autoload doc ftplugin lua plugin syntax \
+    -type f -exec install -Dm 644 '{}' "$pkgdir/usr/share/vim/vimfiles/{}" \;
+  install -Dm 644 README.md -t "$pkgdir/usr/share/doc/$pkgname/"
+  install -Dm 644 ../LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+}
+
+# vim:set ts=2 sw=2 et:

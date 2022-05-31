@@ -1,0 +1,34 @@
+# Maintainer: BlackEagle <ike.devolder@gmail.com>>
+
+pkgname=kodi-addon-screensaver-asteroids
+epoch=1
+pkgver=19.0.1
+_codename=Matrix
+pkgrel=4
+pkgdesc="Asteroids screensaver for Kodi"
+arch=('x86_64')
+url='https://github.com/xbmc/screensaver.asteroids'
+license=('GPL')
+groups=('kodi-addons' 'kodi-addons-screensaver')
+makedepends=('cmake' 'glm' 'kodi-dev')
+options=(!lto debug)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/xbmc/screensaver.asteroids/archive/$pkgver-$_codename.tar.gz")
+sha512sums=('773f97386e18a385cc218304eec9e69df014ae504cc239292b9e17fccda50de04bf052d03e4a3b1c4e938ffbc0504071e5be3852657e051891ef2722c9ab025e')
+
+build() {
+    cd "screensaver.asteroids-$pkgver-$_codename"
+    cmake \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=1 \
+        -DUSE_LTO=1 \
+        .
+    make
+}
+
+package() {
+    depends=('kodi' 'glm')
+    cd "screensaver.asteroids-$pkgver-$_codename"
+    make DESTDIR="$pkgdir/" install
+}
+

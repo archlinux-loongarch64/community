@@ -1,0 +1,49 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@gmail.com>
+# Contributor: Daenyth <Daenyth+Arch [AT] gmail [DOT] com>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: rabyte <rabyte__gmail>
+
+pkgname=supertuxkart
+pkgver=1.3
+pkgrel=1
+pkgdesc='Kart racing game featuring Tux and his friends'
+arch=('x86_64')
+url='https://supertuxkart.net'
+license=('GPL3')
+depends=('openal' 'libvorbis' 'fribidi' 'curl' 'bluez-libs' 'libxrandr' 'glu'
+         'wayland' 'libxkbcommon-x11' 'sqlite' 'libjpeg-turbo' 'libraqm'
+         'hicolor-icon-theme' 'sdl2')
+makedepends=('cmake' 'subversion' 'mesa' 'imagemagick' 'setconf' 'mesa-libgl' 'ninja')
+source=("https://github.com/supertuxkart/stk-code/releases/download/${pkgver}/SuperTuxKart-${pkgver}-src.tar.xz")
+sha512sums=('42664390c844ebca0be9b2f2aeb3c9197c0c79a7c604707b32e81ef41aec10fa36f5950f06e1540ea6f75f6c7f8a8f7f80aeda48de3d101d991420f5b20530ed')
+
+build() {
+  cd "$srcdir"/SuperTuxKart-${pkgver}-src
+
+  _fn="data/${pkgname}.desktop"
+  setconf "$_fn" Exec "$pkgname"
+  setconf "$_fn" TryExec "$pkgname"
+  setconf "$_fn" Icon "$pkgname"
+
+  cmake . \
+    -Bbuild \
+    -GNinja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib \
+    -DBUILD_RECORDER=0
+
+  ninja -C build
+}
+
+package() {
+  cd "$srcdir"/SuperTuxKart-${pkgver}-src
+
+  DESTDIR="$pkgdir" ninja -C build install
+
+  # Why is this even in here?
+  rm -r "$pkgdir"/usr/lib
+  rm -r "$pkgdir"/usr/include
+}
+
+# vim:set ts=2 sw=2 et:

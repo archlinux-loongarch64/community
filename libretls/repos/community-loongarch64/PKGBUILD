@@ -1,0 +1,28 @@
+# Maintainer: Bruno Pagani <archange@archlinux.org>
+# Maintainer: Eli Schwartz <eschwartz@archlinux.org>
+# Contributor: lillian rose winter <hi@neko.vg>
+# Contributor: Evan McCarthy <evan@mccarthy.mn>
+
+pkgname=libretls
+pkgver=3.4.2
+pkgrel=1
+pkgdesc="libtls for OpenSSL"
+arch=(x86_64)
+url="https://git.causal.agency/${pkgname}"
+license=(ISC BSD MIT)
+depends=(openssl)
+source=(https://causal.agency/${pkgname}/${pkgname}-${pkgver}.tar.gz)
+sha256sums=('3260ec03ffc7fee50f4c850051d276db635f7f6b36f7cd3f999c4e2c90ec8420')
+b2sums=('2bfe4af4ea8d773f79b6607e7a0a2e7ae7cfae40690312e940c583bfc6de98087f328d1613e65695f46cf6ba1e11f9ef5f043185d21bcd595004f70cec6f3ef3')
+
+build() {
+  cd ${pkgname}-${pkgver}
+  ./configure --prefix=/usr
+  make
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+  sed -n '1,/*\//p' tls.c | install -Dm644 /dev/stdin "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE
+}

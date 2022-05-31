@@ -1,0 +1,48 @@
+# Maintainer: kpcyrd <kpcyrd[at]archlinux[dot]org>
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+# Maintainer: Orhun Parmaksız <orhun@archlinux.org>
+
+pkgname=cargo-edit
+pkgver=0.9.0
+pkgrel=1
+pkgdesc='Managing cargo dependencies from the command line'
+url='https://github.com/killercup/cargo-edit/releases'
+arch=('x86_64')
+license=('MIT' 'APACHE')
+depends=('cargo' 'libgit2.so')
+options=('debug')
+source=(https://github.com/killercup/${pkgname}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz)
+sha512sums=('45422d3a3393cb3a1ebbc155543c3ede5a5aa37c49361ee4cc57b404374381b8a5527383dc4c91ed501894b1410decff254d9e471ae21ad06209c5269831fed9')
+b2sums=('eeb1a179ea361444551d9f618076704bbc5b0cca188fe7a48fac3df9f98246ae2b88a9ef08775b60064953f42fb7a82341809a6414034d4b064fdc333e4ee591')
+
+prepare() {
+  cd "${pkgname}-${pkgver}"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  CFLAGS+=' -ffat-lto-objects'
+  cargo build --frozen --release
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  # tests depend on target/debug/
+  cargo test --frozen
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  install -Dm 755 \
+    target/release/cargo-add \
+    target/release/cargo-rm \
+    target/release/cargo-upgrade \
+    target/release/cargo-set-version \
+    -t "${pkgdir}/usr/bin"
+
+  install -Dm 644 README.md -t "${pkgdir}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:

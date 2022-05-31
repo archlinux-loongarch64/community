@@ -1,0 +1,26 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Rémy Oudompheng <oudomphe@clipper.ens.fr>
+# Contributor: Alessandro "jakedust" Andrioni <jakedust@gmail.com>
+
+pkgname=flint
+pkgver=2.8.4
+pkgrel=1
+pkgdesc='A C library for doing number theory'
+arch=(x86_64)
+url='http://www.flintlib.org'
+license=(GPL)
+depends=(mpfr ntl cblas)
+makedepends=(cmake python)
+source=(http://www.flintlib.org/flint-$pkgver.tar.gz)
+sha256sums=('61df92ea8c8e9dc692d46c71d7f50aaa09a33d4ba08d02a1784730a445e5e4be')
+
+build() {
+  cmake -B build -S $pkgname-$pkgver \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DWITH_NTL=ON
+  cmake --build build
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+}

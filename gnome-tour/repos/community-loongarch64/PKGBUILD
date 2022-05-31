@@ -1,0 +1,26 @@
+# Maintainer: Balló György <ballogyor+arch at gmail dot com>
+
+pkgname=gnome-tour
+pkgver=40.1
+pkgrel=1
+pkgdesc='Guided tour and greeter for GNOME'
+arch=('x86_64')
+url='https://gitlab.gnome.org/GNOME/gnome-tour'
+license=('GPL3')
+depends=('libhandy')
+makedepends=('appstream-glib' 'meson' 'rust')
+source=("https://download.gnome.org/sources/$pkgname/${pkgver%.*}/$pkgname-$pkgver.tar.xz")
+sha256sums=('ad8612d75d01eea63c59c998eb928ebe6ef998466061b9fc1fdec8285d363398')
+
+build() {
+  arch-meson $pkgname-$pkgver build
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package() {
+  DESTDIR="$pkgdir" meson install -C build
+}

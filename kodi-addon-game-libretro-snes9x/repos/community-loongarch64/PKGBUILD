@@ -1,0 +1,33 @@
+# Maintainer: BlackEagle <ike.devolder@gmail.com>>
+
+pkgname=kodi-addon-game-libretro-snes9x
+pkgver=1.61.0.32
+_codename=Matrix
+pkgrel=4
+pkgdesc="Libretro wrapper for Kodi's Game API"
+arch=('x86_64')
+url='https://github.com/kodi-game/game.libretro.snes9x'
+license=('GPL')
+groups=('kodi-addons' 'kodi-addons-game')
+makedepends=('cmake' 'kodi-dev' 'kodi-addon-game-libretro' 'libretro-snes9x')
+options=(!lto debug)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/kodi-game/game.libretro.snes9x/archive/$pkgver-$_codename.tar.gz")
+sha512sums=('af7b309b56fb00b959a1b27ce26dd1ed8feab47a42a52550c29e8dd0d7f8af31aba88ffaa43cfa2b79ba8460a07b05504cfd884d8051fd431f0b2f334c789e1a')
+
+build() {
+    cd "game.libretro.snes9x-$pkgver-$_codename"
+    cmake \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=1 \
+        -DUSE_LTO=1 \
+        .
+    make
+}
+
+package() {
+    depends=('kodi-addon-game-libretro' 'libretro-snes9x')
+    cd "game.libretro.snes9x-$pkgver-$_codename"
+	make DESTDIR="$pkgdir/" install
+}
+

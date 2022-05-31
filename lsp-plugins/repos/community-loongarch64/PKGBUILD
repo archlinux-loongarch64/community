@@ -1,0 +1,109 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+pkgbase=lsp-plugins
+pkgname=(lsp-plugins lsp-plugins-docs)
+pkgver=1.2.0
+pkgrel=2
+pkgdesc="Collection of free plugins compatible with LADSPA, LV2 and LinuxVST"
+arch=(x86_64)
+url="https://lsp-plug.in"
+license=(LGPL3)
+makedepends=(cairo gcc-libs glibc hicolor-icon-theme libglvnd libx11 jack ladspa libsndfile lv2 php)
+checkdepends=(lv2lint)
+options=(debug)
+source=(
+  https://github.com/sadko4u/$pkgname/releases/download/$pkgver/$pkgname-src-$pkgver.tar.gz
+  $pkgbase-1.2.0-xdg_data_install.patch
+  $pkgbase-1.2.0-icon_install.patch
+)
+sha512sums=('b4aa8ca6512bb01248d39393fb6ac76f4b97a60f36d2f7e18a5dce6600cc77d57c667c96f51940ce7b8ad09b72638e417c9e3802dc7e49f652979d8fe7e40957'
+            'ff2f848e117c21dc0cbc1a4c9d7df9de911e66f2cb555192bf567e5414735cd47f8ebf81396344831a665adef1e4616e78560e85b4960bcaa3a45811648d1938'
+            '7eab97335c7e1b80ccb0e6363686c1eb38e5a169c282ee4f090c594477a65f2147cb206e703e0ec3ed6eeeb591ba975a27d3ab8befcf503f9a42280d314c6c8e')
+b2sums=('ffa65105fa05ff8ae845333138c2ccedc5295a524ed45c6633912b342b112f05aecbc3dfa935dbfb7dc6d7efc106cf1b20ed86ddc649729461e7a32a200e473d'
+        '9cb89cc8881f1c274c4ea15174a258059060f0e12928744c264c53e318c04c972e5dcb05ce20a81fe69656b87e7bb39489dc5c8ef29b44630584f2cfeaa69fd5'
+        '722e07a0cce45bc49a7a276e470970ea7fd5764c5f049ec40273f9fff945af147e9fdcdec03a69860b0528e108d15e439489477904ed6024736a73fc74b3abab')
+
+prepare() {
+  # fix installation location of XDG data and icons: https://github.com/sadko4u/lsp-plugins/issues/229
+  patch -Np1 -d $pkgbase/modules/lsp-plugin-fw -i ../../../$pkgbase-1.2.0-xdg_data_install.patch
+  patch -Np1 -d $pkgbase/modules/lsp-plugins-shared -i ../../../$pkgbase-1.2.0-icon_install.patch
+}
+
+build() {
+  make config FEATURES='doc lv2 vst2 jack ladspa xdg' PREFIX=/usr -C $pkgbase
+  make -C $pkgbase
+}
+
+check() {
+  local _plugin
+  local _lv2_uri="http://lsp-plug.in/plugins/lv2/"
+  local _lv2_plugins=(art_delay_mono art_delay_stereo comp_delay_mono
+  comp_delay_stereo comp_delay_x2_stereo compressor_lr compressor_mono
+  compressor_ms compressor_stereo crossover_lr crossover_mono crossover_ms
+  crossover_stereo dyna_processor_lr dyna_processor_mono dyna_processor_ms
+  dyna_processor_stereo expander_lr expander_mono expander_ms expander_stereo
+  gate_lr gate_mono gate_ms gate_stereo graph_equalizer_x16_lr
+  graph_equalizer_x16_mono graph_equalizer_x16_ms graph_equalizer_x16_stereo
+  graph_equalizer_x32_lr graph_equalizer_x32_mono graph_equalizer_x32_ms
+  graph_equalizer_x32_stereo impulse_responses_mono impulse_responses_stereo
+  impulse_reverb_mono impulse_reverb_stereo latency_meter limiter_mono
+  limiter_stereo loud_comp_mono loud_comp_stereo mb_compressor_lr
+  mb_compressor_mono mb_compressor_ms mb_compressor_stereo mb_expander_lr
+  mb_expander_mono mb_expander_ms mb_expander_stereo mb_gate_lr mb_gate_mono
+  mb_gate_ms mb_gate_stereo multisampler_x12 multisampler_x12_do
+  multisampler_x24 multisampler_x24_do multisampler_x48 multisampler_x48_do
+  oscillator_mono oscilloscope_x1 oscilloscope_x2 oscilloscope_x4
+  para_equalizer_x16_lr para_equalizer_x16_mono para_equalizer_x16_ms
+  para_equalizer_x16_stereo para_equalizer_x32_lr para_equalizer_x32_mono
+  para_equalizer_x32_ms para_equalizer_x32_stereo phase_detector profiler_mono
+  profiler_stereo room_builder_mono room_builder_stereo sampler_mono
+  sampler_stereo sc_compressor_lr sc_compressor_mono sc_compressor_ms
+  sc_compressor_stereo sc_dyna_processor_lr sc_dyna_processor_mono
+  sc_dyna_processor_ms sc_dyna_processor_stereo sc_expander_lr sc_expander_mono
+  sc_expander_ms sc_expander_stereo sc_gate_lr sc_gate_mono sc_gate_ms
+  sc_gate_stereo sc_limiter_mono sc_limiter_stereo sc_mb_compressor_lr
+  sc_mb_compressor_mono sc_mb_compressor_ms sc_mb_compressor_stereo
+  sc_mb_expander_lr sc_mb_expander_mono sc_mb_expander_ms sc_mb_expander_stereo
+  sc_mb_gate_lr sc_mb_gate_mono sc_mb_gate_ms sc_mb_gate_stereo slap_delay_mono
+  slap_delay_stereo spectrum_analyzer_x1 spectrum_analyzer_x12
+  spectrum_analyzer_x16 spectrum_analyzer_x2 spectrum_analyzer_x4
+  spectrum_analyzer_x8 surge_filter_mono surge_filter_stereo trigger_midi_mono
+  trigger_midi_stereo trigger_mono trigger_stereo)
+
+  make FEATURES=lv2 DESTDIR="$PWD/test" install -C $pkgbase
+  for _plugin in "${_lv2_plugins[@]}"; do
+    lv2lint -Mpack -I "$PWD/test/usr/lib/lv2/$pkgname.lv2/" $_lv2_uri$_plugin
+  done
+}
+
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
+  done
+}
+
+package_lsp-plugins() {
+  groups=(ladspa-plugins lv2-plugins pro-audio vst-plugins)
+  depends=(cairo gcc-libs glibc hicolor-icon-theme libglvnd libsndfile.so libx11)
+  optdepends=(
+    'jack: for standalone applications'
+    'ladspa-host: for LADSPA plugins'
+    'lsp-plugins-docs: for documentation'
+    'lv2-host: for LV2 plugins'
+    'vst-host: for VST plugins'
+  )
+
+  make PREFIX=/usr DESTDIR="$pkgdir" install -C $pkgbase
+
+  _pick docs "$pkgdir/usr/share/doc"
+}
+
+package_lsp-plugins-docs() {
+  pkgdesc+=" (documentation)"
+
+  mv -v docs/* "$pkgdir"
+}

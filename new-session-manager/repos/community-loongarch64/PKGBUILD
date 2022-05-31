@@ -1,0 +1,31 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+pkgname=new-session-manager
+pkgver=1.6.0
+pkgrel=1
+pkgdesc="Audio session manager"
+arch=(x86_64)
+url="https://github.com/jackaudio/new-session-manager"
+license=(GPL3)
+depends=(gcc-libs glibc)
+makedepends=(fltk jack liblo meson)
+optdepends=('fltk: for nsm-legacy-gui')
+provides=(non-session-manager)
+conflicts=(non-session-manager)
+replaces=(non-session-manager)
+options=(debug)
+source=($pkgname-$pkgver.tar.gz::https://github.com/jackaudio/$pkgname/archive/v$pkgver.tar.gz)
+sha512sums=('1d4bf373e879104261ef3035fe7f62dafe22e2114ccec3b5739f075df106509f321f8caf137880874e86ea070b263e3021d4bac969209cec42337e44e6a4bd88')
+b2sums=('9ba7a2ecfd17cfc74bfac74704398cc199b0a92e6b87381ec9229a61d6a96f376da9563c6f58eb4d937821bf27739772cf138f5279327a6ffa339a72f12dcfcf')
+
+build() {
+  arch-meson build $pkgname-$pkgver
+  ninja -C build
+}
+
+package() {
+  depends+=(libjack.so liblo.so)
+
+  DESTDIR="$pkgdir" meson install -C build
+  install -vDm 644 $pkgname-$pkgver/{CHANGELOG,README.md} -t "$pkgdir/usr/share/doc/$pkgname/"
+}

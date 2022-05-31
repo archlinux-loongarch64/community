@@ -1,0 +1,38 @@
+# Maintainer: Eli Schwartz <eschwartz@archlinux.org>
+
+pkgname=pageedit
+pkgver=1.7.0
+pkgrel=1
+pkgdesc="Simple Single Page XHTML Visual Editor, split from Sigil's BookView"
+arch=('x86_64')
+url="https://github.com/Sigil-Ebook/PageEdit"
+license=('GPL3')
+depends=('qt5-svg' 'qt5-webengine')
+makedepends=('cmake' 'qt5-tools')
+source=("PageEdit-${pkgver}.tar.gz::${url}/archive/${pkgver}.tar.gz"
+        "${url}/releases/download/${pkgver}/PageEdit-${pkgver}.tar.gz.sig")
+sha256sums=('918349373049b0234169534f6c705f3de4f10036c458c484d71fad2cdf46cc28'
+            'SKIP')
+b2sums=('3ce2ce28fc8855d5c60ccc36c75345dfc5230ebbf5d5a403130db2eaf51bea3d712243973ca90dc012d98824c350684e1ac520bfaf7b998d94117d8cd0f4cba4'
+        'SKIP')
+validpgpkeys=('B5A56206AB0FBC1A24EFAB8AA166D29A8FCDAC63') # Doug Massay <douglaslmassay@gmail.com>
+
+build() {
+    mkdir -p "${srcdir}"/PageEdit-${pkgver}/build
+    cd "${srcdir}"/PageEdit-${pkgver}/build
+
+    cmake -G "Unix Makefiles" \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=lib \
+        -DINSTALL_BUNDLED_DICTS=0 \
+        -DCMAKE_C_FLAGS:STRING="${CFLAGS}" \
+        -DCMAKE_CXX_FLAGS:STRING="${CXXFLAGS}" \
+        ..
+    make
+}
+
+package() {
+    cd "${srcdir}"/PageEdit-${pkgver}/build
+
+    make install DESTDIR="${pkgdir}"
+}

@@ -1,0 +1,27 @@
+# Maintainer: Sergej Pupykin <arch+pub@sergej.pp.ru>
+
+pkgname=log4cxx
+pkgver=0.12.1
+pkgrel=1
+pkgdesc="A C++ port of Log4j"
+url="http://logging.apache.org/log4cxx"
+license=("Apache")
+depends=('apr-util' 'libxml2')
+arch=('x86_64')
+makedepends=('cmake' 'patch' 'zip' 'gzip' 'sed')
+conflicts=('log4cxx-svn')
+source=("http://archive.apache.org/dist/logging/$pkgname/$pkgver/apache-$pkgname-$pkgver.tar.gz")
+sha512sums=('807058734cebf7c92e99484313becbc6be63e48bd930889c733318bb78dfec498b66aaa12255ed30879abb005b32e2b965f9dd87ec50d0421ca067f3f66280d9')
+
+build() {
+  cd "$srcdir/apache-$pkgname-$pkgver"
+  mkdir -p build
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX=/usr -DWITH_AVCODEC=1 -DWITH_FFMPEGTHUMBNAILER=1 ..
+  make
+}
+
+package() {
+  cd "$srcdir/apache-$pkgname-$pkgver/build"
+  make DESTDIR="$pkgdir/" install
+}

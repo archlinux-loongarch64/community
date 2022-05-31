@@ -1,0 +1,34 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Orhun Parmaksız <orhun@archlinux.org>
+# Contributor: Attenuation <ouyangjun1999@gmail.com>
+
+pkgname=hexyl
+pkgver=0.9.0
+pkgrel=1
+pkgdesc='Colored command-line hex viewer'
+url='https://github.com/sharkdp/hexyl'
+arch=('x86_64')
+license=('Apache' 'MIT')
+depends=('gcc-libs')
+makedepends=('rust' 'cargo')
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha512sums=('a6fc8315dd115ac4b3e3717ffc6e218bf587749149405250796a435834252382fe51c613688729d7de6911340bf6f2002ae945c0f19b499dacc767e995958ce6')
+b2sums=('244c133a06e6432937803e84b2b64cd762a75c05490189533271522a069b68b639e7517904e5585d8b617b68885da1a092d6bdae2d6c15bd53d38bb89d96517f')
+
+build() {
+  cd ${pkgname}-${pkgver}
+  cargo build --release --locked
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  cargo test --release --locked
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  install -Dm 755 target/release/${pkgname} -t "${pkgdir}/usr/bin"
+  install -Dm 644 LICENSE* -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:

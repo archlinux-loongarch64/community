@@ -1,0 +1,29 @@
+# Maintainer: Anatol Pomozov
+# Contributor: László Várady <laszlo.varady93@gmail.com>
+
+pkgname=rocksdb
+pkgver=7.0.4
+pkgrel=1
+pkgdesc='Embedded key-value store for fast storage'
+arch=(x86_64)
+url="https://rocksdb.org/"
+license=(GPL2 Apache)
+depends=(bzip2 jemalloc lz4 snappy zlib zstd tbb liburing)
+makedepends=(python)
+source=(rocksdb-$pkgver.tar.gz::https://github.com/facebook/rocksdb/archive/v$pkgver.tar.gz)
+sha256sums=('b1282e07a6b736c0d8c2a7ff69c5a53abbaac1ea6a8b3a07235370cb1f8eb160')
+
+build() {
+  cd rocksdb-$pkgver
+  PORTABLE=1 USE_RTTI=1 make shared_lib
+}
+
+check() {
+  cd rocksdb-$pkgver
+  # make check # fails due to https://github.com/facebook/rocksdb/issues/8974
+}
+
+package() {
+  cd rocksdb-$pkgver
+  make install-shared DESTDIR="$pkgdir" PREFIX=/usr
+}

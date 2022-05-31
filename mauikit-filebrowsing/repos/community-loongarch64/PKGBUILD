@@ -1,0 +1,22 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+
+pkgname=mauikit-filebrowsing
+pkgver=2.1.1
+pkgrel=1
+pkgdesc='MauiKit File Browsing utilities and controls'
+url='https://mauikit.org/'
+arch=(x86_64)
+license=(LGPL)
+depends=(mauikit kio)
+makedepends=(extra-cmake-modules)
+source=(https://download.kde.org/stable/maui/$pkgname/$pkgver/$pkgname-$pkgver.tar.xz)
+sha256sums=('daee19e3df3f04a701c7319d9c27d2828146fd9aed3c3897c652781286e72ccc')
+
+build() {
+  cmake -B build -S $pkgname-$pkgver
+  cmake --build build
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+}
