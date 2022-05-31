@@ -12,18 +12,24 @@ _commit=20aea93915a0d31138cb00e17cc15eb849e3b806
 pkgver="2.1.0.beta3.r397.g${_commit::8}"
 pkgrel=1
 pkgdesc='Just-in-time compiler and drop-in replacement for Lua 5.1'
-arch=('x86_64')
+arch=('x86_64' 'loongarch64')
 url='https://luajit.org/'
 license=('MIT')
 depends=('gcc-libs')
 options=('debug')
-source=("LuaJIT-${_commit}.tar.gz::https://repo.or.cz/luajit-2.0.git/snapshot/${_commit}.tar.gz")
-md5sums=('20e8dfb64c907f5755cd99ebed02df9f')
+source=("LuaJIT-${_commit}.tar.gz::https://repo.or.cz/luajit-2.0.git/snapshot/${_commit}.tar.gz"
+	"0001-basically-support-for-LoongArch-architecture.patch")
+md5sums=('20e8dfb64c907f5755cd99ebed02df9f'
+	 'SKIP')
 sha256sums=('a2190947126306f2d137ae8a6fc6b04f4f1cf6460216f4ee0e208ff95cdd1e35')
 b2sums=('895f07f17f24010bf8f5ed88887dd42660a805b1b243b09047a3b2055813d66986a6095265a9a7f5f28ffccbe92e3c868775029bf71f2be33e2da02cbed886fa')
 
 build() {
   cd "luajit-2.0-${_commit::7}"
+
+  # add LoongArch support
+  #patch -Np1 -i $srcdir/0001-basically-support-for-LoongArch-architecture.patch
+
   # Avoid early stripping
   make amalg PREFIX=/usr BUILDMODE=dynamic TARGET_STRIP=" @:"
 }
